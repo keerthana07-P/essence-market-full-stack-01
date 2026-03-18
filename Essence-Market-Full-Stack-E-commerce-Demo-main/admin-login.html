@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Admin Login — EssenceMarket 🌿</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: { "display": ["Manrope"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+        .form-field {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: inherit;
+        }
+        .field-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: #fff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 9999px; /* Fully rounded */
+            transition: all 0.3s ease;
+        }
+        .dark .field-wrap { background: rgb(30 41 59); border-color: rgb(51 65 85); }
+        .field-wrap:focus-within {
+            border-color: #13ec13;
+            box-shadow: 0 0 0 4px rgba(19,236,19,0.15);
+            transform: translateY(-1px);
+        }
+        
+        .login-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .login-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(19,236,19,0.4);
+        }
+        .login-btn:hover::after {
+            transform: translateX(100%);
+        }
+        .login-btn:active {
+            transform: scale(0.97);
+        }
+        
+        /* Floating background elements */
+        .bg-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display flex items-center justify-center relative overflow-hidden">
+    
+    <!-- Background Decor -->
+    <div class="bg-shape bg-emerald-300/30 w-96 h-96 -top-20 -left-20"></div>
+    <div class="bg-shape bg-primary/20 w-[500px] h-[500px] -bottom-40 -right-40"></div>
+
+    <div class="relative z-10 w-full max-w-md px-5">
+        <!-- Back Button -->
+        <a href="settings.html" class="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors mb-6 group">
+            <span class="material-symbols-outlined text-xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
+            Back to Settings
+        </a>
+
+        <!-- Login Card -->
+        <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-white dark:border-slate-700">
+            
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center size-20 rounded-full bg-gradient-to-br from-primary/20 to-emerald-400/20 mb-4 ring-8 ring-primary/5">
+                    <span class="material-symbols-outlined text-4xl text-emerald-600 dark:text-primary" style="font-variation-settings:'FILL' 1">admin_panel_settings</span>
+                </div>
+                <h1 class="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight mb-1">Admin Portal</h1>
+                <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Sign in to manage EssenceMarket</p>
+            </div>
+
+            <form id="admin-login-form" class="space-y-5" onsubmit="handleLogin(event)">
+                
+                <!-- Email -->
+                <div>
+                    <label class="sr-only">Email Address</label>
+                    <div class="field-wrap">
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-primary text-xl shrink-0">mail</span>
+                        <input id="email-input" class="form-field dark:text-white" type="email" placeholder="Email Address" required />
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="sr-only">Password</label>
+                    <div class="field-wrap relative">
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-primary text-xl shrink-0">lock</span>
+                        <input id="password-input" class="form-field dark:text-white" type="password" placeholder="Password" required />
+                    </div>
+                    <!-- Error Message -->
+                    <p id="error-msg" class="text-red-500 text-xs font-bold mt-2 ml-4 hidden opacity-0 transition-opacity flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">error</span>
+                        Invalid login. Admin access only.
+                    </p>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="login-btn w-full bg-primary text-slate-900 font-extrabold text-base py-4 rounded-full shadow-[0_8px_30px_rgba(19,236,19,0.25)] flex items-center justify-center gap-2 mt-2">
+                    Login
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+            </form>
+            
+        </div>
+        
+        <p class="text-center text-xs font-medium text-slate-400 mt-8">
+            &copy; 2026 EssenceMarket. Restricted Access.
+        </p>
+
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email-input').value.trim();
+            const password = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            // Hardcoded Credentials
+            if (email === 'admin@essencemarket.com' && password === 'admin123') {
+                errorMsg.classList.add('hidden');
+                errorMsg.classList.remove('opacity-100');
+                
+                // Set flag and admin data, then redirect
+                localStorage.setItem('currentUserRole', 'admin');
+                localStorage.setItem('adminData', JSON.stringify({
+                    name: 'Admin',
+                    email: 'admin@essencemarket.com'
+                }));
+                
+                // Add a small success state to button
+                const btn = document.querySelector('.login-btn');
+                btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Success';
+                btn.classList.replace('bg-primary', 'bg-emerald-500');
+                btn.classList.add('text-white');
+                
+                setTimeout(() => {
+                    window.location.href = 'admin-dashboard.html';
+                }, 600);
+            } else {
+                // Show Error
+                errorMsg.classList.remove('hidden');
+                // slight delay for transition
+                setTimeout(() => errorMsg.classList.add('opacity-100'), 10);
+                
+                // Shake effect on the form
+                const form = document.querySelector('.bg-white\\/80');
+                form.style.transform = 'translateX(-10px)';
+                setTimeout(() => form.style.transform = 'translateX(10px)', 100);
+                setTimeout(() => form.style.transform = 'translateX(-10px)', 200);
+                setTimeout(() => form.style.transform = 'translateX(0)', 300);
+            }
+        }
+    </script>
+</body>
+</html>

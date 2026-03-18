@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Settings — EssenceMarket 🌿</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: { "display": ["Manrope"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+        .settings-card {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .settings-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(19,236,19,0.08) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .settings-card:hover::before { opacity: 1; }
+        .settings-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(19,236,19,0.2);
+        }
+        .settings-card:active { transform: scale(0.97); }
+
+        .icon-ring {
+            position: relative;
+        }
+        .icon-ring::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid rgba(19,236,19,0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .settings-card:hover .icon-ring::after { opacity: 1; }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+    <div class="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
+
+        <!-- Header -->
+        <div class="flex items-center bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md p-4 pb-2 justify-between sticky top-0 z-50 border-b border-primary/10">
+            <button onclick="history.back()" class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center justify-center rounded-lg hover:bg-primary/10 transition-colors">
+                <span class="material-symbols-outlined text-2xl">arrow_back</span>
+            </button>
+            <h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold tracking-tight flex-1 text-center">
+                Settings
+            </h2>
+            <div class="size-12 shrink-0"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 px-5 py-8 max-w-lg mx-auto w-full">
+
+            <!-- Section Header -->
+            <div class="mb-8 text-center">
+                <div class="inline-flex items-center justify-center size-16 rounded-full bg-primary/10 mb-4">
+                    <span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings:'FILL' 1">settings</span>
+                </div>
+                <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100 mb-1">Account Settings</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Manage your account and access</p>
+            </div>
+
+            <!-- Settings Options -->
+            <div class="space-y-4">
+
+                <!-- User Login Card -->
+                <a href="user-profile.html" class="settings-card flex items-center gap-5 p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm cursor-pointer group">
+                    <div class="icon-ring shrink-0 size-14 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-3xl text-emerald-600 dark:text-primary" style="font-variation-settings:'FILL' 1">account_circle</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">User Login</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Update your profile, name, photo & contact</p>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                </a>
+
+                <!-- Administrative Login Card -->
+                <a href="admin-login.html" class="settings-card flex items-center gap-5 p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm cursor-pointer group">
+                    <div class="icon-ring shrink-0 size-14 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-3xl text-purple-600 dark:text-purple-400" style="font-variation-settings:'FILL' 1">admin_panel_settings</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">Administrative Login</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Access the admin dashboard and controls</p>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                </a>
+
+            </div>
+
+            <!-- Divider -->
+            <div class="my-8 border-t border-slate-100 dark:border-slate-700"></div>
+
+            <!-- Quick Links -->
+            <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 px-1">Quick Links</p>
+            <div class="space-y-2">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-colors text-sm font-semibold">
+                    <span class="material-symbols-outlined text-xl">home</span> Home
+                </a>
+                <a href="user-profile.html" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-colors text-sm font-semibold">
+                    <span class="material-symbols-outlined text-xl">person</span> My Orders & Profile
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // If already logged in, update card links to go directly to dashboard
+        (function () {
+            var role = localStorage.getItem('currentUserRole');
+            if (role === 'user' || role === 'customer') {
+                var userCard = document.querySelector('a[href="user-profile.html"]');
+                if (userCard) {
+                    var desc = userCard.querySelector('p');
+                    if (desc) desc.textContent = 'You are logged in — tap to view your profile';
+                }
+            } else if (role === 'admin') {
+                var adminCard = document.querySelector('a[href="admin-login.html"]');
+                if (adminCard) {
+                    adminCard.href = 'admin-dashboard.html';
+                    var desc = adminCard.querySelector('p');
+                    if (desc) desc.textContent = 'You are logged in — tap to open admin dashboard';
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

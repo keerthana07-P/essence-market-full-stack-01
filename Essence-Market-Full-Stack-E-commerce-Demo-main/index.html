@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Welcome to Essence Market 🌿</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: { "display": ["Manrope"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; min-height: 100dvh; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 20px 40px rgba(19, 236, 19, 0.1);
+        }
+        .hero-bg {
+            background: radial-gradient(circle at top right, rgba(19, 236, 19, 0.1), transparent),
+                        radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.05), transparent);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark hero-bg flex flex-col items-center justify-center p-6 sm:p-12 overflow-hidden relative">
+    
+    <!-- Decorative Elements -->
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+
+    <div class="relative z-10 w-full max-w-5xl text-center space-y-12">
+        <header class="space-y-4">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-emerald-700 font-bold text-sm tracking-wide">
+                <span class="material-symbols-outlined text-base">eco</span>
+                ESSENCE MARKET
+            </div>
+            <h1 class="text-4xl sm:text-6xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                Elevate Your E-Commerce <br/> <span class="text-emerald-500">Experience.</span>
+            </h1>
+            <p class="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+                Premium, minimalist solutions for administrators and customers alike. Choose your portal to continue.
+            </p>
+        </header>
+
+        <div class="grid sm:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <!-- Admin Card -->
+            <button onclick="handleSelection('admin')" class="glass-card p-10 rounded-[2.5rem] flex flex-col items-center text-center space-y-6 group">
+                <div class="size-20 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-900 group-hover:bg-primary/20 group-hover:text-emerald-600 transition-colors">
+                    <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1">admin_panel_settings</span>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-2xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors">Admin Portal</h3>
+                    <p class="text-sm text-slate-500 font-medium">Manage products, track orders, and monitor your business analytics.</p>
+                </div>
+                <div class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 group-hover:bg-emerald-600 transition-colors">
+                    Access Portal <span class="material-symbols-outlined">arrow_forward</span>
+                </div>
+            </button>
+
+            <!-- Customer Card -->
+            <button onclick="handleSelection('customer')" class="glass-card p-10 rounded-[2.5rem] flex flex-col items-center text-center space-y-6 group">
+                <div class="size-20 bg-emerald-50 rounded-3xl flex items-center justify-center text-emerald-600 group-hover:bg-primary/20 transition-colors">
+                    <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1">shopping_bag</span>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-2xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors">Customer Store</h3>
+                    <p class="text-sm text-slate-500 font-medium">Discover curated botanical collections and a premium shopping experience.</p>
+                </div>
+                <div class="w-full py-4 bg-emerald-50 text-emerald-700 rounded-2xl font-bold flex items-center justify-center gap-2 group-hover:bg-primary/20 transition-colors">
+                    Visit Store <span class="material-symbols-outlined">arrow_forward</span>
+                </div>
+            </button>
+        </div>
+
+        <footer class="pt-12 text-slate-400 text-sm font-medium">
+            &copy; 2026 Essence Market &bull; Pure & Natural Solutions
+        </footer>
+    </div>
+
+    <script>
+        function handleSelection(role) {
+            if (role === 'admin') {
+                window.location.href = 'admin-login.html';
+            } else {
+                localStorage.setItem('currentUserRole', 'customer');
+                window.location.href = 'home.html'; // Redirect to storefront
+            }
+        }
+    </script>
+</body>
+</html>

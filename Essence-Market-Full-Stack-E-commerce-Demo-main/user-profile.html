@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>My Account — EssenceMarket 🌿</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        // Auth guard: admins must not see this page
+        (function () {
+            const role = localStorage.getItem('currentUserRole');
+            if (role === 'admin') {
+                window.location.replace('admin-dashboard.html');
+            } else if (!role) {
+                window.location.replace('index.html');
+            }
+        })();
+
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: { "display": ["Manrope"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+        /* ── Sidebar nav items ── */
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 16px;
+            border-radius: 14px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        .sidebar-item:hover { background: rgba(19,236,19,0.08); color: #16a34a; }
+        .sidebar-item.active {
+            background: rgba(19,236,19,0.12);
+            color: #15803d;
+            font-weight: 700;
+        }
+        .sidebar-item.active .sidebar-icon { color: #13ec13; }
+        .dark .sidebar-item { color: #94a3b8; }
+        .dark .sidebar-item:hover { color: #4ade80; }
+        .dark .sidebar-item.active { color: #4ade80; background: rgba(19,236,19,0.1); }
+
+        /* ── Form Fields ── */
+        .form-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px; display: block; }
+        .dark .form-label { color: #94a3b8; }
+        .field-wrap {
+            display: flex; align-items: center; gap: 12px;
+            padding: 13px 16px; background: #f8fafc;
+            border: 1.5px solid #e2e8f0; border-radius: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .dark .field-wrap { background: #1e293b; border-color: #334155; }
+        .field-wrap:focus-within { border-color: #13ec13; box-shadow: 0 0 0 3px rgba(19,236,19,0.15); }
+        .form-input {
+            flex: 1; background: transparent; border: none; outline: none;
+            font-family: 'Manrope', sans-serif; font-size: 0.9rem; font-weight: 600; color: inherit;
+        }
+        .dark .form-input { color: #e2e8f0; }
+
+        /* ── Avatar ── */
+        #avatar-wrapper { position: relative; cursor: pointer; }
+        #avatar-wrapper:hover .avatar-overlay { opacity: 1; }
+        .avatar-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.25s; color: #fff;
+        }
+
+        /* ── Section panels ── */
+        .section-panel { display: none; }
+        .section-panel.active { display: block; }
+
+        /* ── Success modal ── */
+        #success-modal {
+            position: fixed; inset: 0; z-index: 500;
+            background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            opacity: 0; pointer-events: none; transition: opacity 0.35s ease;
+        }
+        #success-modal.show { opacity: 1; pointer-events: all; }
+        #success-modal-card {
+            background: #fff; border-radius: 28px; padding: 40px 32px;
+            max-width: 380px; width: 100%; text-align: center;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.18);
+            transform: scale(0.88) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        #success-modal.show #success-modal-card { transform: scale(1) translateY(0); }
+
+        /* ── Mobile bottom bar ── */
+        @media (min-width: 768px) { .mobile-bottom-bar { display: none !important; } }
+
+        /* ── Save button pulse ── */
+        @keyframes pulse-green { 0%,100%{ box-shadow:0 0 0 0 rgba(19,236,19,0.4);} 50%{ box-shadow:0 0 0 12px rgba(19,236,19,0);} }
+        .btn-save:hover { animation: pulse-green 1.5s infinite; }
+
+        /* ── Order/status chips ── */
+        .status-chip { display:inline-flex; align-items:center; gap:4px; padding: 4px 10px; border-radius:9999px; font-size:0.7rem; font-weight:700; }
+        .status-delivered { background:#dcfce7; color:#16a34a; }
+        .status-processing { background:#fef9c3; color:#b45309; }
+        .status-cancelled { background:#fee2e2; color:#dc2626; }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+
+    <!-- ══ HEADER ══ -->
+    <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-primary/10 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <button onclick="history.back()" class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-primary/10 transition-colors text-slate-700 dark:text-slate-300">
+                    <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                </button>
+                <a href="index.html" class="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+                    Essence<span class="text-primary">Market</span> <span class="text-base">🌿</span>
+                </a>
+            </div>
+            <nav class="hidden md:flex items-center gap-5 text-sm font-semibold text-slate-500">
+                <a href="index.html" class="hover:text-primary transition-colors">Home</a>
+                <a href="explore.html" class="hover:text-primary transition-colors">Explore</a>
+                <a href="cart.html" class="hover:text-primary transition-colors">Cart</a>
+            </nav>
+            <button onclick="handleLogout()" class="hidden md:flex items-center gap-1.5 text-sm font-bold text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 rounded-full px-4 py-2 transition-all hover:bg-red-50">
+                <span class="material-symbols-outlined text-base">logout</span> Log out
+            </button>
+        </div>
+    </header>
+
+    <!-- ══ MAIN LAYOUT ══ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-28 md:pb-10">
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+
+            <!-- ── LEFT SIDEBAR ── -->
+            <aside class="w-full md:w-72 md:shrink-0">
+
+                <!-- Profile Mini Card -->
+                <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden mb-4">
+                    <div style="background:linear-gradient(135deg,#13ec13 0%,#16a34a 55%,#064e3b 100%)" class="p-5 flex items-center gap-4">
+                        <div id="sidebar-avatar-wrap" class="size-14 rounded-full bg-white/20 border-2 border-white/50 overflow-hidden flex items-center justify-center shrink-0">
+                            <img id="sidebar-avatar" src="" alt="" class="w-full h-full object-cover hidden" />
+                            <span id="sidebar-initials" class="text-2xl font-black text-white">🌿</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p id="sidebar-name" class="text-white font-extrabold text-base leading-tight truncate">My Account</p>
+                            <p id="sidebar-email" class="text-white/75 text-xs truncate">Not logged in</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nav Menu -->
+                <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm p-3 space-y-1">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 pt-1 pb-2">Account</p>
+                    <button class="sidebar-item active" data-section="personal">
+                        <span class="sidebar-icon material-symbols-outlined text-xl text-primary">person</span>
+                        Personal Information
+                    </button>
+                    <button class="sidebar-item" data-section="orders">
+                        <span class="sidebar-icon material-symbols-outlined text-xl text-slate-400">shopping_bag</span>
+                        My Orders
+                    </button>
+                    <button class="sidebar-item" data-section="history">
+                        <span class="sidebar-icon material-symbols-outlined text-xl text-slate-400">history</span>
+                        Order History
+                    </button>
+                    <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 pt-1 pb-2">Preferences</p>
+                    <button class="sidebar-item" data-section="wishlist">
+                        <span class="sidebar-icon material-symbols-outlined text-xl text-slate-400">favorite</span>
+                        Wishlist
+                    </button>
+                    <button class="sidebar-item" data-section="address">
+                        <span class="sidebar-icon material-symbols-outlined text-xl text-slate-400">location_on</span>
+                        Saved Addresses
+                    </button>
+                    <button class="sidebar-item" data-section="settings">
+                        <span class="sidebar-icon material-symbols-outlined text-xl text-slate-400">settings</span>
+                        Account Settings
+                    </button>
+                </div>
+            </aside>
+
+            <!-- ── RIGHT PANEL ── -->
+            <div class="flex-1 min-w-0 space-y-6">
+
+                <!-- ═ SECTION: Personal Information ═ -->
+                <div class="section-panel active" id="panel-personal">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <!-- Panel header -->
+                        <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                            <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">person</span>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-extrabold text-slate-900 dark:text-slate-100">Personal Information</h2>
+                                <p class="text-xs text-slate-400">Update your profile details below</p>
+                            </div>
+                        </div>
+
+                        <!-- Avatar -->
+                        <div class="px-6 pt-6 pb-4 flex flex-col items-center border-b border-slate-100 dark:border-slate-700">
+                            <div id="avatar-wrapper" onclick="document.getElementById('pic-input').click()"
+                                class="size-24 rounded-full shadow-lg border-4 border-primary/30 bg-gradient-to-br from-emerald-100 to-green-200 dark:from-emerald-900 dark:to-green-800 overflow-hidden relative">
+                                <img id="avatar-img" src="" alt="Profile" class="w-full h-full object-cover hidden" />
+                                <div id="avatar-initials" class="w-full h-full flex items-center justify-center text-3xl font-black text-primary">🌿</div>
+                                <div class="avatar-overlay">
+                                    <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings:'FILL' 1">photo_camera</span>
+                                    <span class="text-white text-[10px] font-bold mt-1">Change</span>
+                                </div>
+                            </div>
+                            <input type="file" id="pic-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
+                            <p class="text-xs text-slate-400 mt-2">Tap to upload photo</p>
+                        </div>
+
+                        <!-- Form Fields -->
+                        <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Full Name -->
+                            <div>
+                                <label class="form-label">Full Name *</label>
+                                <div class="field-wrap">
+                                    <span class="material-symbols-outlined text-primary text-xl shrink-0">badge</span>
+                                    <input id="field-name" class="form-input dark:text-slate-100" type="text" placeholder="Enter your full name" />
+                                </div>
+                            </div>
+                            <!-- Email -->
+                            <div>
+                                <label class="form-label">Email Address *</label>
+                                <div class="field-wrap">
+                                    <span class="material-symbols-outlined text-primary text-xl shrink-0">mail</span>
+                                    <input id="field-email" class="form-input dark:text-slate-100" type="email" placeholder="you@example.com" />
+                                </div>
+                            </div>
+                            <!-- Phone -->
+                            <div>
+                                <label class="form-label">Phone <span class="normal-case tracking-normal font-normal text-slate-400">(optional)</span></label>
+                                <div class="field-wrap">
+                                    <span class="material-symbols-outlined text-primary text-xl shrink-0">phone</span>
+                                    <input id="field-phone" class="form-input dark:text-slate-100" type="tel" placeholder="+91 XXXXX XXXXX" />
+                                </div>
+                            </div>
+                            <!-- Address -->
+                            <div>
+                                <label class="form-label">Delivery Address</label>
+                                <div class="field-wrap">
+                                    <span class="material-symbols-outlined text-primary text-xl shrink-0">location_on</span>
+                                    <input id="field-address" class="form-input dark:text-slate-100" type="text" placeholder="Street, City, PIN" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Save Button -->
+                        <div class="px-6 pb-6">
+                            <button onclick="saveProfile()" class="btn-save w-full bg-primary text-slate-900 font-extrabold text-base py-4 rounded-2xl shadow-[0_8px_30px_rgba(19,236,19,0.3)] hover:bg-emerald-400 active:scale-95 transition-all flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">save</span>
+                                Save Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═ SECTION: My Orders ═ -->
+                <div class="section-panel" id="panel-orders">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                            <div class="size-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-blue-500" style="font-variation-settings:'FILL' 1">shopping_bag</span>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-extrabold text-slate-900 dark:text-slate-100">My Orders</h2>
+                                <p class="text-xs text-slate-400">Track and manage your orders</p>
+                            </div>
+                        </div>
+                        <div id="orders-list" class="divide-y divide-slate-100 dark:divide-slate-700">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="orders-empty" class="hidden py-16 flex flex-col items-center justify-center text-center px-8">
+                            <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600 mb-3">package_2</span>
+                            <p class="font-bold text-slate-500 dark:text-slate-400">No orders yet</p>
+                            <p class="text-sm text-slate-400 dark:text-slate-500 mt-1">Start shopping to see your orders here!</p>
+                            <a href="explore.html" class="mt-5 bg-primary text-slate-900 font-bold text-sm px-6 py-2.5 rounded-full hover:bg-emerald-400 transition-all">Browse Oils</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═ SECTION: Order History ═ -->
+                <div class="section-panel" id="panel-history">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                            <div class="size-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-amber-500" style="font-variation-settings:'FILL' 1">history</span>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-extrabold text-slate-900 dark:text-slate-100">Order History</h2>
+                                <p class="text-xs text-slate-400">All past purchases</p>
+                            </div>
+                        </div>
+                        <div id="history-list" class="divide-y divide-slate-100 dark:divide-slate-700">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="history-empty" class="hidden py-16 flex flex-col items-center justify-center text-center px-8">
+                            <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600 mb-3">receipt_long</span>
+                            <p class="font-bold text-slate-500 dark:text-slate-400">No order history</p>
+                            <p class="text-sm text-slate-400 dark:text-slate-500 mt-1">Completed orders will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═ SECTION: Wishlist ═ -->
+                <div class="section-panel" id="panel-wishlist">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-rose-500" style="font-variation-settings:'FILL' 1">favorite</span>
+                                </div>
+                                <div>
+                                    <h2 class="text-base font-extrabold text-slate-900 dark:text-slate-100">Wishlist</h2>
+                                    <p class="text-xs text-slate-400">Items you've saved for later</p>
+                                </div>
+                            </div>
+                            <a href="wishlist.html" class="text-xs font-bold text-primary hover:underline">View all</a>
+                        </div>
+                        <div id="wishlist-panel-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 p-5">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="wishlist-panel-empty" class="hidden py-16 flex flex-col items-center justify-center text-center px-8">
+                            <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600 mb-3">favorite_border</span>
+                            <p class="font-bold text-slate-500">Your wishlist is empty</p>
+                            <a href="explore.html" class="mt-5 bg-primary text-slate-900 font-bold text-sm px-6 py-2.5 rounded-full hover:bg-emerald-400 transition-all">Explore Oils</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═ SECTION: Saved Addresses ═ -->
+                <div class="section-panel" id="panel-address">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                            <div class="size-10 rounded-full bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-violet-500" style="font-variation-settings:'FILL' 1">location_on</span>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-extrabold text-slate-900 dark:text-slate-100">Saved Addresses</h2>
+                                <p class="text-xs text-slate-400">Your delivery address</p>
+                            </div>
+                        </div>
+                        <div class="p-6" id="address-panel-content">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═ SECTION: Account Settings ═ -->
+                <div class="section-panel" id="panel-settings">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                            <div class="size-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-slate-500" style="font-variation-settings:'FILL' 1">settings</span>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-extrabold text-slate-900 dark:text-slate-100">Account Settings</h2>
+                                <p class="text-xs text-slate-400">Manage your account</p>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <!-- Clear data -->
+                            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-slate-200">Clear Profile Data</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">Remove your saved name, photo and contact info</p>
+                                </div>
+                                <button onclick="clearProfile()" class="text-xs font-bold text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-4 py-2 rounded-xl transition-all hover:bg-red-50">Clear</button>
+                            </div>
+                            <!-- Logout -->
+                            <button onclick="handleLogout()" class="flex items-center justify-center gap-2 w-full text-sm font-bold text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 rounded-2xl py-4 transition-all hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <span class="material-symbols-outlined">logout</span>
+                                Log Out from EssenceMarket
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /right panel -->
+        </div><!-- /layout -->
+    </main>
+
+    <!-- ══ MOBILE BOTTOM NAV ══ -->
+    <div class="mobile-bottom-bar fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-primary/10 px-4 pb-6 pt-2 z-50">
+        <div class="flex gap-2 justify-around max-w-md mx-auto">
+            <a class="group flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 hover:text-primary transition-colors" href="index.html">
+                <span class="material-symbols-outlined">home</span>
+                <p class="text-[10px] font-medium">Home</p>
+            </a>
+            <a class="group flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 hover:text-primary transition-colors" href="explore.html">
+                <span class="material-symbols-outlined">explore</span>
+                <p class="text-[10px] font-medium">Explore</p>
+            </a>
+            <a class="group flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 hover:text-primary transition-colors" href="cart.html">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                <p class="text-[10px] font-medium">Cart</p>
+            </a>
+            <a class="group flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="user-profile.html">
+                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">person</span>
+                <p class="text-[10px] font-bold">Profile</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- ══ PROFILE SAVED SUCCESS MODAL ══ -->
+    <div id="success-modal">
+        <div id="success-modal-card">
+            <!-- Green checkmark circle -->
+            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#13ec13,#16a34a);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 12px 32px rgba(19,236,19,0.35);">
+                <span class="material-symbols-outlined" style="color:white;font-size:36px;font-variation-settings:'FILL' 1">check_circle</span>
+            </div>
+            <h2 style="font-size:1.5rem;font-weight:800;color:#0f172a;margin-bottom:6px;">Profile Saved! 🌿</h2>
+            <p style="color:#64748b;font-size:0.875rem;margin-bottom:24px;">Your details have been updated successfully.</p>
+
+            <!-- Saved info chip -->
+            <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:16px;padding:14px 18px;margin-bottom:24px;text-align:left;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span class="material-symbols-outlined" style="color:#16a34a;font-size:18px;font-variation-settings:'FILL' 1">person</span>
+                    <span id="modal-name" style="font-weight:700;font-size:0.9rem;color:#15803d;">—</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="material-symbols-outlined" style="color:#16a34a;font-size:18px;">mail</span>
+                    <span id="modal-email" style="font-weight:600;font-size:0.875rem;color:#475569;">—</span>
+                </div>
+            </div>
+
+            <!-- Continue Shopping button -->
+            <a href="index.html" id="continue-shopping-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,#13ec13,#16a34a);color:#0f172a;font-weight:800;font-size:1rem;padding:16px;border-radius:16px;text-decoration:none;box-shadow:0 8px 24px rgba(19,236,19,0.35);transition:transform 0.15s,box-shadow 0.15s;"
+                onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 14px 32px rgba(19,236,19,0.45)'"
+                onmouseout="this.style.transform='';this.style.boxShadow='0 8px 24px rgba(19,236,19,0.35)'">
+                <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">storefront</span>
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+
+    <script src="supabase_client.js"></script>
+    <script src="app.js"></script>
+    <script src="auth.js"></script>
+    <script>
+    // ── Storage Keys ────────────────────────────────────────────────────────
+    const ROLE_KEY    = 'currentUserRole';
+    const USER_KEY    = 'userData';
+
+    function getUserData() { return JSON.parse(localStorage.getItem(USER_KEY) || '{}'); }
+    function saveUserData(d) { localStorage.setItem(USER_KEY, JSON.stringify(d)); }
+
+    // ── Avatar display helpers ───────────────────────────────────────────────
+    function setAvatar(url, name) {
+        const img = document.getElementById('avatar-img');
+        const ini = document.getElementById('avatar-initials');
+        const sImg = document.getElementById('sidebar-avatar');
+        const sIni = document.getElementById('sidebar-initials');
+
+        if (url) {
+            img.src = url; img.classList.remove('hidden'); ini.classList.add('hidden');
+            if (sImg) { sImg.src = url; sImg.classList.remove('hidden'); sIni && sIni.classList.add('hidden'); }
+        } else {
+            img.classList.add('hidden');
+            const letter = name ? name.charAt(0).toUpperCase() : '🌿';
+            ini.textContent = letter; ini.classList.remove('hidden');
+            if (sIni) { sIni.textContent = letter; sIni.classList.remove('hidden'); sImg && sImg.classList.add('hidden'); }
+        }
+    }
+
+    // ── Image Upload ─────────────────────────────────────────────────────────
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            const url = e.target.result;
+            setAvatar(url, document.getElementById('field-name')?.value || '');
+            const d = getUserData(); d.userAvatar = url; saveUserData(d);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ── Load form from Supabase/localStorage ─────────────────────────────────
+    async function loadProfile() {
+        const d = getUserData();
+        const email = d.userEmail || '';
+        
+        const nameEl    = document.getElementById('field-name');
+        const emailEl   = document.getElementById('field-email');
+        const phoneEl   = document.getElementById('field-phone');
+        const addressEl = document.getElementById('field-address');
+
+        // Initial fill from local storage
+        if (nameEl)    nameEl.value    = d.userName    || '';
+        if (emailEl)   emailEl.value   = d.userEmail   || '';
+        if (phoneEl)   phoneEl.value   = d.userPhone   || '';
+        if (addressEl) addressEl.value = d.userAddress || '';
+        setAvatar(d.userAvatar || null, d.userName || '');
+
+        // Fetch fresh data from Supabase if email exists
+        if (email) {
+            try {
+                const profile = await window.SupabaseClient.fetchProfile(email);
+                if (profile) {
+                    if (nameEl)    nameEl.value    = profile.full_name || '';
+                    if (phoneEl)   phoneEl.value   = profile.phone || '';
+                    if (addressEl) addressEl.value = profile.address || '';
+                    setAvatar(profile.avatar_url || null, profile.full_name || '');
+                    
+                    // Sync local storage
+                    const syncedData = {
+                        ...d,
+                        userName: profile.full_name,
+                        userPhone: profile.phone,
+                        userAddress: profile.address,
+                        userAvatar: profile.avatar_url,
+                        name: profile.full_name,
+                        profileImage: profile.avatar_url
+                    };
+                    saveUserData(syncedData);
+                }
+            } catch (err) {
+                console.error('Supabase Profile Sync Error:', err);
+            }
+        }
+
+        const freshData = getUserData();
+        // Update sidebar
+        const sName  = document.getElementById('sidebar-name');
+        const sEmail = document.getElementById('sidebar-email');
+        if (sName)  sName.textContent  = freshData.userName  || 'My Account';
+        if (sEmail) sEmail.textContent = freshData.userEmail || '';
+
+        // Populate address panel
+        renderAddressPanel(freshData);
+    }
+
+    // ── Save Profile ─────────────────────────────────────────────────────────
+    async function saveProfile() {
+        const name    = (document.getElementById('field-name')?.value || '').trim();
+        const email   = (document.getElementById('field-email')?.value || '').trim();
+        const phone   = (document.getElementById('field-phone')?.value || '').trim();
+        const address = (document.getElementById('field-address')?.value || '').trim();
+
+        if (!name)  { flashField('field-name',  'Please enter your name.');  return; }
+        if (!email) { flashField('field-email', 'Please enter your email.'); return; }
+
+        const existing = getUserData();
+        const data = {
+            userName:    name,
+            userEmail:   email,
+            userPhone:   phone,
+            userAddress: address,
+            userAvatar:  existing.userAvatar || null,
+            // legacy keys for sidebar in other pages
+            name, email, phone, profileImage: existing.userAvatar || null
+        };
+
+        try {
+            const btn = document.querySelector('.btn-save');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-xl">sync</span> Saving...';
+            btn.disabled = true;
+
+            // Save to Supabase
+            await window.SupabaseClient.saveProfile({
+                email: email,
+                full_name: name,
+                phone: phone,
+                address: address,
+                avatar_url: existing.userAvatar || null
+            });
+
+            saveUserData(data);
+            localStorage.setItem(ROLE_KEY, 'user');
+
+            // Update sidebar display
+            const sName  = document.getElementById('sidebar-name');
+            const sEmail = document.getElementById('sidebar-email');
+            if (sName)  sName.textContent  = name;
+            if (sEmail) sEmail.textContent = email;
+            setAvatar(data.userAvatar, name);
+            renderAddressPanel(data);
+
+            // Show success modal
+            document.getElementById('modal-name').textContent  = name;
+            document.getElementById('modal-email').textContent = email;
+            const modal = document.getElementById('success-modal');
+            modal.classList.add('show');
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        } catch (err) {
+            alert('Failed to save profile to server. Local changes kept.');
+            console.error(err);
+            const btn = document.querySelector('.btn-save');
+            btn.innerHTML = '<span class="material-symbols-outlined text-xl" style="font-variation-settings:\'FILL\' 1">save</span> Save Profile';
+            btn.disabled = false;
+        }
+    }
+
+    // ── Clear Profile ────────────────────────────────────────────────────────
+    function clearProfile() {
+        if (!confirm('Clear all saved profile data?')) return;
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(ROLE_KEY);
+        ['field-name','field-email','field-phone','field-address','pic-input'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        setAvatar(null, '');
+        const sName  = document.getElementById('sidebar-name');
+        const sEmail = document.getElementById('sidebar-email');
+        if (sName)  sName.textContent  = 'My Account';
+        if (sEmail) sEmail.textContent = '';
+        renderAddressPanel({});
+    }
+
+    // ── Field flash (validation) ─────────────────────────────────────────────
+    function flashField(id, msg) {
+        const wrap = document.getElementById(id)?.closest('.field-wrap');
+        if (!wrap) return;
+        wrap.style.borderColor = '#ef4444';
+        wrap.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.15)';
+        document.getElementById(id)?.focus();
+        setTimeout(() => { wrap.style.borderColor = ''; wrap.style.boxShadow = ''; }, 2000);
+    }
+
+    // ── Address Panel ────────────────────────────────────────────────────────
+    function renderAddressPanel(d) {
+        const container = document.getElementById('address-panel-content');
+        if (!container) return;
+        if (d.userAddress) {
+            container.innerHTML = `
+                <div class="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <div class="size-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-violet-600 dark:text-violet-400" style="font-variation-settings:'FILL' 1">home</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-sm text-slate-900 dark:text-slate-100">${d.userName || 'Home Address'}</p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">${d.userAddress}</p>
+                        ${d.userPhone ? `<p class="text-xs text-slate-400 mt-1">📞 ${d.userPhone}</p>` : ''}
+                    </div>
+                    <button onclick="switchSection('personal')" class="text-xs font-bold text-primary hover:underline shrink-0">Edit</button>
+                </div>`;
+        } else {
+            container.innerHTML = `
+                <div class="flex flex-col items-center py-10 text-center">
+                    <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600 mb-3">add_location_alt</span>
+                    <p class="font-bold text-slate-400 mb-1">No address saved</p>
+                    <p class="text-xs text-slate-400">Add a delivery address in <button onclick="switchSection('personal')" class="text-primary font-bold hover:underline">Personal Information</button></p>
+                </div>`;
+        }
+    }
+
+    // ── Orders Panels ────────────────────────────────────────────────────────
+    function renderOrders() {
+        const orders = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+        renderOrderList('orders-list', 'orders-empty', orders.slice(-5).reverse(), true);
+        renderOrderList('history-list', 'history-empty', orders.reverse(), false);
+    }
+
+    function renderOrderList(listId, emptyId, orders, showTrack) {
+        const list  = document.getElementById(listId);
+        const empty = document.getElementById(emptyId);
+        if (!list || !empty) return;
+        if (!orders.length) {
+            list.innerHTML = ''; empty.classList.remove('hidden'); empty.style.display = 'flex';
+            list.style.display = 'none'; return;
+        }
+        empty.classList.add('hidden'); list.style.display = '';
+        list.innerHTML = orders.map(o => {
+            const statusClass = o.status === 'Delivered' ? 'status-delivered' : o.status === 'Processing' ? 'status-processing' : 'status-cancelled';
+            return `
+            <div class="px-6 py-4 flex items-center gap-4">
+                <div class="size-12 rounded-xl bg-slate-100 dark:bg-slate-700 overflow-hidden shrink-0">
+                    ${o.image ? `<img src="${o.image}" class="w-full h-full object-cover" />` : `<div class="w-full h-full flex items-center justify-center text-2xl">🌿</div>`}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">${o.name || 'Order'}</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Order #${o.id || '—'} · ${o.date || ''}</p>
+                    <p class="text-sm font-extrabold text-primary mt-1">${o.total || ''}</p>
+                </div>
+                <div class="shrink-0 text-right">
+                    <span class="status-chip ${statusClass}">${o.status || 'Processing'}</span>
+                    ${showTrack ? `<p class="text-[10px] font-bold text-primary mt-1 cursor-pointer hover:underline">Track</p>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Wishlist Panel ───────────────────────────────────────────────────────
+    function renderWishlistPanel() {
+        const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+        const grid  = document.getElementById('wishlist-panel-grid');
+        const empty = document.getElementById('wishlist-panel-empty');
+        if (!grid || !empty) return;
+        if (!wishlist.length) {
+            grid.innerHTML = ''; empty.classList.remove('hidden');
+            empty.style.display = 'flex'; grid.style.display = 'none'; return;
+        }
+        empty.classList.add('hidden'); grid.style.display = '';
+        grid.innerHTML = wishlist.slice(0,6).map(item => `
+            <div class="bg-slate-50 dark:bg-slate-700/50 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700">
+                <div class="aspect-square bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                    <img src="${item.image || ''}" alt="${item.title}" class="w-full h-full object-cover" loading="lazy" />
+                </div>
+                <div class="p-2.5">
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200 line-clamp-1">${item.title}</p>
+                    <p class="text-xs font-extrabold text-primary mt-0.5">${item.price}</p>
+                </div>
+            </div>`).join('');
+    }
+
+    // ── Sidebar navigation ───────────────────────────────────────────────────
+    function switchSection(key) {
+        document.querySelectorAll('.sidebar-item').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.section === key);
+        });
+        document.querySelectorAll('.section-panel').forEach(p => {
+            p.classList.toggle('active', p.id === `panel-${key}`);
+        });
+        // Lazy-render sections
+        if (key === 'orders' || key === 'history') renderOrders();
+        if (key === 'wishlist') renderWishlistPanel();
+    }
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        loadProfile();
+
+        // Wire sidebar buttons
+        document.querySelectorAll('.sidebar-item[data-section]').forEach(btn => {
+            btn.addEventListener('click', () => switchSection(btn.dataset.section));
+        });
+    });
+    </script>
+</body>
+</html>
