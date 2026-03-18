@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<title>Admin Dashboard — EssenceMarket 🌿</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>tailwind.config={darkMode:"class",theme:{extend:{colors:{primary:"#13ec13"},fontFamily:{display:["Manrope"]}}}}</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:'Manrope',sans-serif;min-height:100dvh;background:#f6f8f6}
+.msf{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+.form-label{display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.form-input{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;font-family:'Manrope',sans-serif;background:#fff;color:#0f172a;transition:border-color .2s,box-shadow .2s}
+.form-input:focus{border-color:#13ec13;box-shadow:0 0 0 3px rgba(19,236,19,.12);outline:none}
+.field-err{color:#ef4444;font-size:11px;margin-top:3px;display:none}
+.field-err.show{display:block}
+#dash-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;min-height:120px;align-items:start}
+@media(max-width:900px){#dash-grid{grid-template-columns:repeat(8,1fr)}}
+@media(max-width:600px){#dash-grid{grid-template-columns:repeat(4,1fr)}}
+.wbox{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.wactions{opacity:0;transition:opacity .2s;position:absolute;top:8px;right:8px;z-index:10;display:flex;gap:4px}
+.wbox:hover .wactions{opacity:1}
+.wpalitem{cursor:grab;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:13px;font-weight:600;color:#334155;transition:border-color .2s,box-shadow .2s;margin-bottom:8px}
+.wpalitem:hover{border-color:#13ec13;box-shadow:0 2px 12px rgba(19,236,19,.15)}
+.wpalitem:active{cursor:grabbing}
+.drag-over{outline:2px dashed #13ec13;outline-offset:4px;border-radius:16px}
+.sortable-ghost{opacity:0.4;background:#f8fafc;border:2px dashed #cbd5e1 !important}
+#cfg-panel{position:fixed;top:112px;right:-340px;width:320px;height:calc(100vh - 112px);background:#fff;border-left:1.5px solid #e2e8f0;box-shadow:-4px 0 24px rgba(0,0,0,.08);z-index:40;display:flex;flex-direction:column;transition:right .3s ease}
+#cfg-panel.open{right:0}
+.ctx-menu{position:fixed;z-index:1000;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:130px;overflow:hidden}
+.ctx-item{padding:10px 16px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;color:#334155;transition:background .15s}
+.ctx-item:hover{background:#f8fafc}
+.tab-btn-active{border-bottom:2px solid #13ec13;color:#16a34a;font-weight:700}
+.tab-btn-idle{border-bottom:2px solid transparent;color:#64748b;font-weight:700}
+.tab-btn-idle:hover{color:#334155}
+.badge-pending{background:#fef3c7;color:#d97706}
+.badge-progress{background:#dbeafe;color:#2563eb}
+.badge-done{background:#dcfce7;color:#16a34a}
+</style>
+</head>
+<body class="text-slate-900">
+
+<!-- AUTH CHECK -->
+<script>if(localStorage.getItem('currentUserRole')!=='admin')window.location.href='admin-login.html';</script>
+
+<!-- HEADER -->
+<div id="site-header" class="flex items-center bg-white/95 backdrop-blur-md px-6 py-3 justify-between sticky top-0 z-50 border-b border-slate-200 shadow-sm">
+  <div class="flex items-center gap-2 font-black tracking-tight text-xl text-slate-900">
+    <div class="size-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+      <span class="material-symbols-outlined text-[18px] msf">admin_panel_settings</span>
+    </div>
+    Admin Portal
+  </div>
+  <div class="flex items-center gap-3">
+    <a href="index.html" class="hidden sm:flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-green-600 transition-colors">
+      <span class="material-symbols-outlined text-[18px]">home</span>Storefront
+    </a>
+    <button onclick="handleLogout()" class="bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-600 px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2">
+      <span class="material-symbols-outlined text-[18px]">logout</span>Logout
+    </button>
+  </div>
+</div>
+
+<!-- TAB NAV -->
+<div class="bg-white border-b border-slate-200 px-6" id="tab-nav">
+  <div class="flex max-w-7xl mx-auto">
+    <button id="tbtn-dash" onclick="switchTab('dashboard')" class="tab-btn-active px-5 py-3 text-sm transition-all">Dashboard</button>
+    <button id="tbtn-products" onclick="switchTab('products')" class="tab-btn-idle px-5 py-3 text-sm transition-all text-emerald-600">Product Management</button>
+    <button id="tbtn-orders" onclick="switchTab('orders')" class="tab-btn-idle px-5 py-3 text-sm transition-all">Customer Orders</button>
+  </div>
+</div>
+
+<!-- CONTENT WRAPPER -->
+<div class="flex relative" style="min-height:calc(100vh - 112px)">
+
+  <!-- WIDGET PALETTE -->
+  <aside id="pal-sidebar" class="hidden bg-white border-r border-slate-200 p-4 shrink-0 overflow-y-auto flex-col" style="width:256px;max-height:calc(100vh - 112px);position:sticky;top:112px">
+    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Charts</p>
+    <div id="pal-charts"></div>
+    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 mt-2">Tables</p>
+    <div id="pal-tables"></div>
+    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 mt-2">KPIs</p>
+    <div id="pal-kpis"></div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <main class="flex-1 overflow-auto">
+
+    <!-- DASHBOARD TAB -->
+    <div id="panel-dashboard" class="p-6">
+      <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+        <div>
+          <h1 class="text-2xl font-black text-slate-900">Dashboard</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Welcome back, Administrator.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap">Show data for</label>
+            <select id="date-filter" onchange="applyDateFilter()" class="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white font-semibold text-slate-700 focus:outline-none focus:border-green-400">
+              <option value="all">All time</option>
+              <option value="today">Today</option>
+              <option value="7">Last 7 Days</option>
+              <option value="30">Last 30 Days</option>
+              <option value="90">Last 90 Days</option>
+            </select>
+          </div>
+          <button id="btn-save" onclick="saveDashboard()" class="hidden items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all">
+            <span class="material-symbols-outlined text-[16px]">save</span>Save Configuration
+          </button>
+          <button id="btn-cfg" onclick="toggleConfigureMode()" class="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all">
+            <span class="material-symbols-outlined text-[16px]">dashboard_customize</span>Configure Dashboard
+          </button>
+        </div>
+      </div>
+      <!-- Empty state -->
+      <div id="dash-empty" class="flex flex-col items-center justify-center py-24 text-center">
+        <div class="size-20 rounded-3xl bg-green-50 text-green-500 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-4xl msf">space_dashboard</span>
+        </div>
+        <h3 class="text-lg font-bold text-slate-700 mb-1">No widgets yet</h3>
+        <p class="text-sm text-slate-400 mb-4">No widgets yet – Configure the dashboard to add widgets</p>
+      </div>
+      <!-- Grid -->
+      <div id="dash-grid" class="hidden"></div>
+    </div>
+
+    <!-- ORDERS TAB -->
+    <div id="panel-orders" class="hidden p-6">
+      <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+        <div>
+          <h1 class="text-2xl font-black text-slate-900">Customer Orders</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Manage and track all customer orders.</p>
+        </div>
+        <button onclick="openOrderModal(null)" class="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all">
+          <span class="material-symbols-outlined text-[16px]">add</span>Create Order
+        </button>
+      </div>
+      <div id="orders-empty" class="flex flex-col items-center justify-center py-24 text-center">
+        <div class="size-20 rounded-3xl bg-blue-50 text-blue-400 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-4xl msf">receipt_long</span>
+        </div>
+        <h3 class="text-lg font-bold text-slate-700 mb-1">No orders yet</h3>
+        <p class="text-sm text-slate-400 mb-4">Create your first customer order to get started.</p>
+        <button onclick="openOrderModal(null)" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold">Create Order</button>
+      </div>
+      <div id="orders-table-wrap" class="hidden bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
+        <table class="w-full text-sm" id="orders-table">
+          <thead class="bg-slate-50 text-[11px] font-black uppercase tracking-wide text-slate-400">
+            <tr id="orders-thead"></tr>
+          </thead>
+          <tbody id="orders-tbody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PRODUCTS TAB -->
+    <div id="panel-products" class="p-6 hidden">
+      <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+        <div>
+          <h1 class="text-2xl font-black text-slate-900">Product Management</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Manage your botanical catalog in real-time.</p>
+        </div>
+        <button onclick="openProductModal()" class="bg-primary text-slate-900 px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">add_circle</span>Add New Product
+        </button>
+      </div>
+
+      <div id="products-table-wrap" class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
+        <table class="w-full text-sm" id="products-table">
+          <thead class="bg-slate-50 text-[11px] font-black uppercase tracking-wide text-slate-400">
+            <tr>
+              <th class="px-4 py-3 text-left">Image</th>
+              <th class="px-4 py-3 text-left">Title</th>
+              <th class="px-4 py-3 text-left">Category</th>
+              <th class="px-4 py-3 text-left">Price</th>
+              <th class="px-4 py-3 text-left">Status</th>
+              <th class="px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="products-tbody" class="divide-y divide-slate-100">
+            <!-- Injected via JS -->
+          </tbody>
+        </table>
+        <div id="products-empty" class="p-12 text-center text-slate-400 hidden">
+          <span class="material-symbols-outlined text-4xl mb-2">inventory_2</span>
+          <p class="font-bold text-sm">No products found</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RIGHT CONFIG PANEL -->
+  <div id="cfg-panel">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 shrink-0">
+      <h3 class="font-black text-sm text-slate-800">Widget Settings</h3>
+      <button onclick="closeCfgPanel()" class="size-7 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+    <div id="cfg-body" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+    <div class="shrink-0 p-4 border-t border-slate-200">
+      <button onclick="applyCfg()" class="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">Apply Changes</button>
+    </div>
+  </div>
+
+</div><!-- end content wrapper -->
+
+<!-- ORDER MODAL -->
+<div id="order-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 sticky top-0 bg-white z-10">
+      <h2 id="modal-title" class="text-lg font-black text-slate-900">Create Order</h2>
+      <button onclick="closeOrderModal()" class="size-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form id="order-form" onsubmit="submitOrder(event)" class="p-6 space-y-4">
+      <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Customer Information</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="form-label">First Name *</label><input id="ff-fname" class="form-input" placeholder="John"><p class="field-err" id="fe-fname">Please fill the field</p></div>
+        <div><label class="form-label">Last Name *</label><input id="ff-lname" class="form-input" placeholder="Doe"><p class="field-err" id="fe-lname">Please fill the field</p></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="form-label">Email *</label><input id="ff-email" type="email" class="form-input" placeholder="john@example.com"><p class="field-err" id="fe-email">Please fill the field</p></div>
+        <div><label class="form-label">Phone *</label><input id="ff-phone" class="form-input" placeholder="+1 555 0000"><p class="field-err" id="fe-phone">Please fill the field</p></div>
+      </div>
+      <div><label class="form-label">Street Address *</label><input id="ff-street" class="form-input" placeholder="123 Main Street"><p class="field-err" id="fe-street">Please fill the field</p></div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="form-label">City *</label><input id="ff-city" class="form-input" placeholder="City"><p class="field-err" id="fe-city">Please fill the field</p></div>
+        <div><label class="form-label">State *</label><input id="ff-state" class="form-input" placeholder="State"><p class="field-err" id="fe-state">Please fill the field</p></div>
+        <div><label class="form-label">Postal Code *</label><input id="ff-postal" class="form-input" placeholder="00000"><p class="field-err" id="fe-postal">Please fill the field</p></div>
+      </div>
+      <div><label class="form-label">Country *</label>
+        <select id="ff-country" class="form-input">
+          <option value="">Select country</option>
+          <option>United States</option><option>Canada</option><option>Australia</option><option>Singapore</option><option>Hong Kong</option>
+        </select><p class="field-err" id="fe-country">Please fill the field</p>
+      </div>
+      <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 pt-2">Order Information</p>
+      <div><label class="form-label">Product *</label>
+        <select id="ff-product" class="form-input" onchange="onProductChange()">
+          <option value="">Select product</option>
+          <!-- Hydrated from Supabase Products -->
+        </select><p class="field-err" id="fe-product">Please fill the field</p>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="form-label">Quantity *</label><input id="ff-qty" type="number" min="1" value="1" class="form-input" oninput="calcTotal()"><p class="field-err" id="fe-qty">Please fill the field</p></div>
+        <div><label class="form-label">Unit Price *</label>
+          <div class="relative"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">₹</span><input id="ff-uprice" type="number" min="0" step="0.01" class="form-input" style="padding-left:24px" oninput="calcTotal()"></div>
+          <p class="field-err" id="fe-uprice">Please fill the field</p>
+        </div>
+        <div><label class="form-label">Total Amount</label>
+          <div class="relative"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">₹</span><input id="ff-total" class="form-input bg-slate-50 text-slate-500" style="padding-left:24px" readonly></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="form-label">Status *</label>
+          <select id="ff-status" class="form-input">
+            <option value="">Select status</option>
+            <option>Pending</option><option>In progress</option><option>Completed</option>
+          </select><p class="field-err" id="fe-status">Please fill the field</p>
+        </div>
+        <div><label class="form-label">Created By *</label>
+          <select id="ff-createdby" class="form-input">
+            <option value="">Select agent</option>
+            <option>Mr. Michael Harris</option><option>Mr. Ryan Cooper</option><option>Ms. Olivia Carter</option><option>Mr. Lucas Martin</option>
+          </select><p class="field-err" id="fe-createdby">Please fill the field</p>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeOrderModal()" class="flex-1 border border-slate-200 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
+        <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl text-sm font-bold transition-colors">Save Order</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- PRODUCT MODAL -->
+<div id="product-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 sticky top-0 bg-white z-10">
+      <h2 id="pmodal-title" class="text-lg font-black text-slate-900">Add Product</h2>
+      <button onclick="closeProductModal()" class="size-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form id="product-form" onsubmit="submitProduct(event)" class="p-6 space-y-4">
+      <input type="hidden" id="pf-id">
+      <div><label class="form-label">Product Title *</label><input id="pf-title" class="form-input" placeholder="e.g. Lavender Essential Oil" required></div>
+      <div><label class="form-label">Description</label><textarea id="pf-desc" class="form-input h-20" placeholder="Brief description..."></textarea></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="form-label">Price (₹) *</label><input id="pf-price" type="number" step="0.01" class="form-input" placeholder="499" required></div>
+        <div><label class="form-label">Category</label>
+          <select id="pf-category" class="form-input">
+            <option>Relaxation Oils</option><option>Aromatherapy Oils</option><option>Skin Care Oils</option><option>Hair Oils</option>
+          </select>
+        </div>
+      </div>
+      <div><label class="form-label">Image Filename / URL</label><input id="pf-image" class="form-input" placeholder="e.g. lavender.png"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="form-label">Status</label>
+          <select id="pf-status" class="form-input">
+            <option>In Stock</option><option>Low Stock</option><option>Out of Stock</option>
+          </select>
+        </div>
+        <div><label class="form-label">Badge</label><input id="pf-badge" class="form-input" placeholder="e.g. Best Seller"></div>
+      </div>
+      <div class="flex items-center gap-2 px-1">
+        <input type="checkbox" id="pf-featured" class="rounded text-primary focus:ring-primary border-slate-300">
+        <label for="pf-featured" class="text-xs font-bold text-slate-600">Featured on Homepage</label>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeProductModal()" class="flex-1 border border-slate-200 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
+        <button type="submit" class="flex-1 bg-primary text-slate-900 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:bg-emerald-400 transition-all">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div id="del-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+    <div class="size-14 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center mx-auto mb-4">
+      <span class="material-symbols-outlined text-2xl msf">delete</span>
+    </div>
+    <h3 class="text-lg font-black text-slate-900 mb-2">Delete this entry?</h3>
+    <p class="text-sm text-slate-500 mb-5">This action cannot be undone.</p>
+    <div class="flex gap-3">
+      <button onclick="closeDelModal()" class="flex-1 border border-slate-200 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
+      <button id="del-confirm-btn" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white py-2.5 rounded-xl text-sm font-bold transition-colors">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div id="ctx-menu" class="ctx-menu hidden">
+  <div class="ctx-item" onclick="ctxEdit()"><span class="material-symbols-outlined text-[16px] text-blue-500">edit</span>Edit</div>
+  <div class="ctx-item" onclick="ctxDelete()"><span class="material-symbols-outlined text-[16px] text-rose-500">delete</span>Delete</div>
+</div>
+
+<script src="supabase_client.js"></script>
+<script src="auth.js"></script>
+<script>
+let currentTab = 'dashboard';
+let products = [];
+let orders = []; // We will stick to localStorage for orders in this demo as per plan, or use Supabase if specified.
+// User said "all database use supabase" -> Let's use Supabase for everything.
+
+async function init() {
+    await fetchProducts();
+    await fetchOrders();
+    renderProductsTable();
+    populateProductDropdowns();
+}
+
+async function fetchOrders() {
+    orders = await window.SupabaseClient.fetchOrders();
+    renderOrdersTable();
+}
+
+async function fetchProducts() {
+    products = await window.SupabaseClient.fetchProducts();
+    renderProductsTable();
+    populateProductDropdowns();
+}
+
+function switchTab(tab) {
+    console.log('Switching to tab:', tab);
+    currentTab = tab;
+    
+    // Panels
+    const panels = {
+        'dashboard': document.getElementById('panel-dashboard'),
+        'orders': document.getElementById('panel-orders'),
+        'products': document.getElementById('panel-products')
+    };
+    
+    // Buttons
+    const buttons = {
+        'dashboard': document.getElementById('tbtn-dash'),
+        'orders': document.getElementById('tbtn-orders'),
+        'products': document.getElementById('tbtn-products')
+    };
+    
+    Object.keys(panels).forEach(key => {
+        const panel = panels[key];
+        const btn = buttons[key];
+        
+        if (panel) {
+            if (key === tab) {
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+        
+        if (btn) {
+            btn.className = (key === tab) ? 'tab-btn-active px-5 py-3 text-sm transition-all' : 'tab-btn-idle px-5 py-3 text-sm transition-all';
+            // Special case for emerald color on products tab if idle
+            if (key === 'products' && key !== tab) {
+                btn.classList.add('text-emerald-600');
+            }
+        }
+    });
+
+    if (tab === 'products') fetchProducts();
+    if (tab === 'orders') fetchOrders();
+}
+
+// ... original widget code logic should be kept or refactored ...
+
+/* ======= STATE ======= */
+let layout  = JSON.parse(localStorage.getItem('essenceDashboardLayout') || '[]');
+let cfgMode = false;
+let activeWid = null;
+let ctxOrderId = null;
+let delCb = null;
+let charts = {};
+
+async function submitProduct(e) {
+    e.preventDefault();
+    const productData = {
+        id: document.getElementById('pf-id').value || undefined,
+        title: document.getElementById('pf-title').value,
+        description: document.getElementById('pf-desc').value,
+        price: parseFloat(document.getElementById('pf-price').value),
+        category: document.getElementById('pf-category').value,
+        image_url: document.getElementById('pf-image').value,
+        status: document.getElementById('pf-status').value,
+        badge: document.getElementById('pf-badge').value,
+        is_featured: document.getElementById('pf-featured').checked
+    };
+    
+    try {
+        await window.SupabaseClient.saveProduct(productData);
+        closeProductModal();
+        await fetchProducts();
+    } catch (err) {
+        alert('Error saving product: ' + err.message);
+    }
+}
+
+function openProductModal(prod = null) {
+    document.getElementById('pmodal-title').innerText = prod ? 'Edit Product' : 'Add New Product';
+    document.getElementById('pf-id').value = prod ? prod.id : '';
+    document.getElementById('pf-title').value = prod ? prod.title : '';
+    document.getElementById('pf-desc').value = prod ? prod.description : '';
+    document.getElementById('pf-price').value = prod ? prod.price : '';
+    document.getElementById('pf-category').value = prod ? prod.category : 'Relaxation Oils';
+    document.getElementById('pf-image').value = prod ? prod.image_url : '';
+    document.getElementById('pf-status').value = prod ? prod.status : 'In Stock';
+    document.getElementById('pf-badge').value = prod ? prod.badge : '';
+    document.getElementById('pf-featured').checked = prod ? prod.is_featured : false;
+    
+    document.getElementById('product-modal').classList.remove('hidden');
+    document.getElementById('product-modal').classList.add('flex');
+}
+
+function closeProductModal() {
+    document.getElementById('product-modal').classList.add('hidden');
+    document.getElementById('product-modal').classList.remove('flex');
+    document.getElementById('product-form').reset();
+}
+
+function renderProductsTable() {
+    const tbody = document.getElementById('products-tbody');
+    const empty = document.getElementById('products-empty');
+    if (!tbody) return;
+    
+    if (products.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+    
+    empty.classList.add('hidden');
+    tbody.innerHTML = products.map(p => `
+        <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-4 py-3"><img src="${p.image_url || 'https://via.placeholder.com/40'}" class="size-10 rounded-lg object-cover border border-slate-100"></td>
+            <td class="px-4 py-3 font-bold text-slate-800">${p.title}</td>
+            <td class="px-4 py-3 text-slate-500">${p.category}</td>
+            <td class="px-4 py-3 font-black text-slate-900">₹${p.price}</td>
+            <td class="px-4 py-3">
+                <span class="px-2 py-1 rounded-full text-[10px] font-bold ${p.status === 'In Stock' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}">${p.status}</span>
+            </td>
+            <td class="px-4 py-3 text-right">
+                <div class="flex justify-end gap-2">
+                    <button onclick="editProduct('${p.id}')" class="p-1.5 hover:bg-blue-50 text-blue-500 rounded-lg transition-colors"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+                    <button onclick="deleteProductPrompt('${p.id}')" class="p-1.5 hover:bg-rose-50 text-rose-500 rounded-lg transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function editProduct(id) {
+    const p = products.find(prod => prod.id == id);
+    if (p) openProductModal(p);
+}
+
+function deleteProductPrompt(id) {
+    ctxOrderId = id; // reuse for simplicity
+    delCb = async () => {
+        try {
+            await window.SupabaseClient.deleteProduct(id);
+            await fetchProducts();
+            closeDelModal();
+        } catch (err) {
+            alert('Error deleting product');
+        }
+    };
+    openDelModal();
+}
+
+function populateProductDropdowns() {
+    const select = document.getElementById('ff-product');
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">Select product</option>' + products.map(p => `
+        <option value="${p.title}" data-price="${p.price}">${p.title} (₹${p.price})</option>
+    `).join('');
+    select.value = currentVal;
+}
+
+/* ======= BOOT ======= */
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  buildPalette();
+  renderOrdersTable();
+  if (layout.length) { showGrid(); layout.forEach(renderWidget); }
+  else showEmpty();
+  document.addEventListener('click', e => {
+    if (!document.getElementById('ctx-menu').contains(e.target)) hideCtx();
+  });
+});
+
+/* ======= AUTH ======= */
+function handleLogout() { localStorage.removeItem('currentUserRole'); window.location.href = 'index.html'; }
+
+
+/* ======= CONFIGURE MODE ======= */
+function toggleConfigureMode() {
+  cfgMode = !cfgMode;
+  const pal = document.getElementById('pal-sidebar');
+  const saveBtn = document.getElementById('btn-save');
+  const cfgBtn = document.getElementById('btn-cfg');
+  if (cfgMode) {
+    pal.classList.remove('hidden'); pal.classList.add('flex');
+    saveBtn.classList.remove('hidden'); saveBtn.classList.add('flex');
+    cfgBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">close</span>Exit Configure';
+    cfgBtn.className = 'flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition-all';
+    initSortable();
+    document.querySelectorAll('.wdraghandle').forEach(el => el.classList.remove('hidden'));
+  } else {
+    pal.classList.add('hidden'); pal.classList.remove('flex');
+    saveBtn.classList.add('hidden'); saveBtn.classList.remove('flex');
+    cfgBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">dashboard_customize</span>Configure Dashboard';
+    cfgBtn.className = 'flex items-center gap-1.5 bg-slate-900 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all';
+    document.querySelectorAll('.wdraghandle').forEach(el => el.classList.add('hidden'));
+  }
+}
+
+/* ======= WIDGET TYPES ======= */
+const WTYPES = [
+  { id:'bar-chart',    label:'Bar Chart',    icon:'bar_chart',    cat:'charts', clr:'bg-blue-50 text-blue-500' },
+  { id:'line-chart',   label:'Line Chart',   icon:'show_chart',   cat:'charts', clr:'bg-indigo-50 text-indigo-500' },
+  { id:'pie-chart',    label:'Pie Chart',    icon:'pie_chart',    cat:'charts', clr:'bg-purple-50 text-purple-500' },
+  { id:'area-chart',   label:'Area Chart',   icon:'area_chart',   cat:'charts', clr:'bg-teal-50 text-teal-500' },
+  { id:'scatter-plot', label:'Scatter Plot', icon:'scatter_plot', cat:'charts', clr:'bg-orange-50 text-orange-500' },
+  { id:'table',        label:'Table',        icon:'table_chart',  cat:'tables', clr:'bg-slate-100 text-slate-500' },
+  { id:'kpi',          label:'KPI Value',    icon:'speed',        cat:'kpis',   clr:'bg-green-50 text-green-600' },
+];
+
+function buildPalette() {
+  const map = { charts:'pal-charts', tables:'pal-tables', kpis:'pal-kpis' };
+  WTYPES.forEach(w => {
+    const el = document.createElement('div');
+    el.className = 'wpalitem cursor-pointer'; el.draggable = true; el.dataset.wtype = w.id;
+    el.innerHTML = `<span class="size-8 rounded-lg ${w.clr} flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[17px] msf">${w.icon}</span></span>${w.label}`;
+    
+    // Add drag start listener
+    el.addEventListener('dragstart', e => {
+      if(!cfgMode) { e.preventDefault(); return; }
+      e.dataTransfer.setData('wtype', w.id);
+    });
+
+    // Add click listener
+    el.addEventListener('click', () => {
+      if(cfgMode) { addWidget(w.id); }
+    });
+    
+    document.getElementById(map[w.cat]).appendChild(el);
+  });
+}
+
+/* ======= DRAG-DROP GRID ======= */
+function initSortable() {
+  const grid = document.getElementById('dash-grid');
+  grid.addEventListener('dragover', e => { e.preventDefault(); grid.classList.add('drag-over'); });
+  grid.addEventListener('dragleave', () => grid.classList.remove('drag-over'));
+  grid.addEventListener('drop', e => {
+    e.preventDefault(); grid.classList.remove('drag-over');
+    const wt = e.dataTransfer.getData('wtype');
+    if (wt) addWidget(wt);
+  });
+  if (window._sortable) window._sortable.destroy();
+  window._sortable = Sortable.create(grid, { animation: 150, handle: '.wdraghandle', onEnd: syncOrder });
+}
+
+/* ======= WIDGET ADD ======= */
+function uid() { return 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+
+function addWidget(type) {
+  const def = WTYPES.find(w => w.id === type);
+  const w = {
+    id: uid(), type, title: def.label, desc: '',
+    colSpan: 4, rowSpan: 2,
+    xAxis: 'product', yAxis: 'quantity', chartColor: '#13ec13', showLabel: false,
+    metric: 'totalAmount', aggregation: 'sum', format: 'currency',
+    dataField: 'product', showLegend: true,
+    columns: ['customerName','product','totalAmount','status'], sorting: true, pagination: 10, applyFilter: false,
+  };
+  layout.push(w); showGrid(); renderWidget(w);
+}
+
+/* ======= GRID HELPERS ======= */
+function showEmpty() { document.getElementById('dash-empty').classList.remove('hidden'); document.getElementById('dash-grid').classList.add('hidden'); }
+function showGrid()  { document.getElementById('dash-empty').classList.add('hidden'); document.getElementById('dash-grid').classList.remove('hidden'); }
+
+/* ======= RENDER WIDGET SHELL ======= */
+function renderWidget(w) {
+  const grid = document.getElementById('dash-grid');
+  const box = document.createElement('div');
+  box.className = 'wbox'; box.id = 'wbox-' + w.id;
+  box.style.cssText = `grid-column:span ${Math.min(w.colSpan||4,12)};grid-row:span ${Math.max(w.rowSpan||2,1)};min-height:${Math.max(w.rowSpan||2,1)*90}px`;
+  box.innerHTML = `
+    <div class="wactions">
+      <button onclick="openCfgPanel('${w.id}')" class="size-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-green-600 shadow-sm transition-colors" title="Settings"><span class="material-symbols-outlined text-[14px]">settings</span></button>
+      <button onclick="removeWidget('${w.id}')" class="size-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-500 shadow-sm transition-colors" title="Delete"><span class="material-symbols-outlined text-[14px]">delete</span></button>
+    </div>
+    <div class="wdraghandle ${cfgMode?'':'hidden'} absolute top-2 left-2 z-10 cursor-grab p-0.5"><span class="material-symbols-outlined text-[16px] text-slate-300">drag_indicator</span></div>
+    <div class="p-4 flex flex-col h-full" id="wcontent-${w.id}"></div>`;
+  grid.appendChild(box);
+  fillWidgetContent(w);
+}
+
+/* ======= FILTERED DATA ======= */
+function filteredOrders() {
+  const v = document.getElementById('date-filter').value;
+  const now = new Date();
+  return orders.filter(o => {
+    if (v === 'all') return true;
+    const d = new Date(o.orderDate);
+    if (v === 'today') return d.toDateString() === now.toDateString();
+    const days = parseInt(v);
+    return d >= new Date(now - days * 864e5);
+  });
+}
+
+/* ======= FIELD LABELS ======= */
+const FL = { customerId:'Customer ID', customerName:'Customer Name', email:'Email', address:'Address', orderDate:'Order Date', product:'Product', createdBy:'Created By', status:'Status', totalAmount:'Total Amount', unitPrice:'Unit Price', quantity:'Quantity', duration:'Duration' };
+
+/* ======= FILL WIDGET CONTENT ======= */
+function fillWidgetContent(w) {
+  const el = document.getElementById('wcontent-' + w.id);
+  if (!el) return;
+  const data = filteredOrders();
+  el.innerHTML = `<div class="font-black text-[13px] text-slate-700 mb-0.5">${w.title}</div>${w.desc ? `<p class="text-[11px] text-slate-400 mb-2">${w.desc}</p>` : ''}`;
+  if (w.type === 'kpi')    renderKpi(w, el, data);
+  else if (w.type === 'table') renderTable(w, el, data);
+  else renderChart(w, el, data);
+}
+
+/* ======= KPI ======= */
+function renderKpi(w, el, data) {
+  const nums = data.map(o => parseFloat(o[w.metric])).filter(n => !isNaN(n));
+  let val = 0;
+  if (w.aggregation === 'sum')   val = nums.reduce((a,b) => a+b, 0);
+  if (w.aggregation === 'avg')   val = nums.length ? nums.reduce((a,b) => a+b, 0) / nums.length : 0;
+  if (w.aggregation === 'count') val = data.length;
+  const fmt = w.format === 'currency' ? '₹' + val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : val.toLocaleString();
+  el.innerHTML += `<div class="flex-1 flex flex-col items-center justify-center gap-1"><div class="text-4xl font-black text-green-500">${fmt}</div><div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">${FL[w.metric]||w.metric} · ${w.aggregation}</div></div>`;
+}
+
+/* ======= TABLE WIDGET ======= */
+const TCOLS = { customerId:'Customer ID', customerName:'Name', email:'Email', phone:'Phone', address:'Address', orderId:'Order ID', orderDate:'Date', product:'Product', quantity:'Qty', unitPrice:'Price', totalAmount:'Total', status:'Status', createdBy:'Created By' };
+
+function renderTable(w, el, data) {
+  const cols = (w.columns && w.columns.length) ? w.columns : Object.keys(TCOLS);
+  let rows = [...data];
+  if (w.sorting && cols[0]) rows.sort((a,b) => String(a[cols[0]]||'').localeCompare(String(b[cols[0]]||'')));
+  const pg = w.pagination || 10;
+  const pages = Math.max(1, Math.ceil(rows.length / pg));
+  w._page = Math.min(w._page || 1, pages);
+  const slice = rows.slice((w._page-1)*pg, w._page*pg);
+  el.innerHTML += `
+  <div class="flex-1 overflow-auto -mx-4 -mb-4">
+    <table class="w-full text-[11px]">
+      <thead class="bg-slate-50 sticky top-0"><tr>${cols.map(c=>`<th class="px-3 py-2 text-left font-black text-slate-400 whitespace-nowrap uppercase tracking-wide">${TCOLS[c]||c}</th>`).join('')}</tr></thead>
+      <tbody class="divide-y divide-slate-100">${slice.map(o=>`<tr class="hover:bg-slate-50">${cols.map(c=>`<td class="px-3 py-2 text-slate-600 whitespace-nowrap">${o[c]||'—'}</td>`).join('')}</tr>`).join('') || '<tr><td colspan="20" class="px-3 py-6 text-center text-slate-400">No data for this period</td></tr>'}
+      </tbody>
+    </table>
+    ${pages > 1 ? `<div class="flex items-center justify-between px-3 py-2 border-t border-slate-100 bg-white"><span class="text-[11px] text-slate-400 font-semibold">Page ${w._page} / ${pages}</span><div class="flex gap-1"><button onclick="wPage('${w.id}',-1)" class="px-2 py-1 rounded border border-slate-200 text-[11px] font-bold hover:bg-slate-50">‹</button><button onclick="wPage('${w.id}',1)" class="px-2 py-1 rounded border border-slate-200 text-[11px] font-bold hover:bg-slate-50">›</button></div></div>` : ''}
+  </div>`;
+}
+
+function wPage(wid, dir) {
+  const w = layout.find(x => x.id === wid); if (!w) return;
+  const pages = Math.max(1, Math.ceil(filteredOrders().length / (w.pagination||10)));
+  w._page = Math.max(1, Math.min(pages, (w._page||1) + dir));
+  fillWidgetContent(w);
+}
+
+/* ======= CHART WIDGET ======= */
+function renderChart(w, el, data) {
+  const cid = 'c-' + w.id;
+  el.innerHTML += `<div class="flex-1 relative min-h-0" style="min-height:120px"><canvas id="${cid}"></canvas></div>`;
+  setTimeout(() => {
+    const cvs = document.getElementById(cid); if (!cvs) return;
+    if (charts[w.id]) { charts[w.id].destroy(); delete charts[w.id]; }
+    const { labels, values } = buildChartData(w, data);
+    const color = w.chartColor || '#13ec13';
+    const isPie = w.type === 'pie-chart';
+    const isScatter = w.type === 'scatter-plot';
+    const palette = (n) => {
+      const base = ['#13ec13','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#10b981','#f97316'];
+      return Array.from({length:n}, (_,i) => base[i % base.length]);
+    };
+    
+    // Map internal types to Chart.js types
+    let cType = w.type.replace('-chart', '').replace('-plot', '');
+    if (isScatter) cType = 'scatter';
+    if (w.type === 'area-chart') cType = 'line';
+    
+    charts[w.id] = new Chart(cvs, {
+      type: cType,
+      data: {
+        labels: isScatter ? undefined : labels,
+        datasets: [{
+          label: w.title,
+          data: isScatter ? data.map(o => ({ x: parseFloat(o[w.xAxis])||0, y: parseFloat(o[w.yAxis])||0 })) : values,
+          backgroundColor: isPie ? palette(labels.length) : color + '33',
+          borderColor:     isPie ? palette(labels.length) : color,
+          borderWidth: 2, fill: w.type === 'area-chart', tension: 0.4, pointRadius: isScatter ? 5 : 3,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: isPie || w.showLegend, position: 'bottom', labels: { font: { family:'Manrope', size:10 }, boxWidth:10 } },
+        },
+        scales: isPie || isScatter ? {} : {
+          x: { grid: { display:false }, ticks: { font: { family:'Manrope', size:10 } } },
+          y: { grid: { color:'#f1f5f9' }, ticks: { font: { family:'Manrope', size:10 } } },
+        },
+      }
+    });
+  }, 60);
+}
+
+function buildChartData(w, data) {
+  if (w.type === 'pie-chart') {
+    const g = {}; data.forEach(o => { const k=o[w.dataField]||'Unknown'; g[k]=(g[k]||0)+1; });
+    return { labels: Object.keys(g), values: Object.values(g) };
+  }
+  const g = {}; data.forEach(o => { const k=String(o[w.xAxis]||'?'); g[k]=(g[k]||0)+(parseFloat(o[w.yAxis])||0); });
+  return { labels: Object.keys(g), values: Object.values(g) };
+}
+
+/* ======= REMOVE WIDGET ======= */
+function removeWidget(wid) {
+  if (!confirm('Remove this widget from the dashboard?')) return;
+  layout = layout.filter(w => w.id !== wid);
+  if (charts[wid]) { charts[wid].destroy(); delete charts[wid]; }
+  document.getElementById('wbox-' + wid)?.remove();
+  if (!layout.length) showEmpty();
+  saveDashboard();
+}
+
+/* ======= ORDER ======= */
+function syncOrder() {
+  const g = document.getElementById('dash-grid');
+  const ids = [...g.children].map(el => el.id.replace('wbox-',''));
+  layout.sort((a,b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+}
+
+/* ======= SAVE / DATE FILTER ======= */
+function saveDashboard() {
+  syncOrder();
+  localStorage.setItem('essenceDashboardLayout', JSON.stringify(layout));
+  const b = document.getElementById('btn-save');
+  b.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_circle</span>Saved!';
+  b.className = 'flex items-center gap-1.5 bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all';
+  setTimeout(() => {
+    b.innerHTML = '<span class="material-symbols-outlined text-[16px]">save</span>Save Configuration';
+    b.className = 'flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all';
+  }, 1800);
+}
+
+function applyDateFilter() {
+  layout.forEach(w => { w._page = 1; });
+  const grid = document.getElementById('dash-grid'); grid.innerHTML = '';
+  Object.values(charts).forEach(c => c.destroy()); charts = {};
+  if (layout.length) { showGrid(); layout.forEach(renderWidget); }
+  else showEmpty();
+  if (cfgMode) initSortable();
+}
+
+/* ======= CONFIG PANEL ======= */
+const METRICS = ['customerId','customerName','email','address','orderDate','product','createdBy','status','totalAmount','unitPrice','quantity'];
+const AXES    = ['product','quantity','unitPrice','totalAmount','status','createdBy','duration'];
+const TCOLKEYS = Object.keys(TCOLS);
+
+function openCfgPanel(wid) {
+  activeWid = wid;
+  const w = layout.find(x => x.id === wid); if (!w) return;
+  document.getElementById('cfg-body').innerHTML = buildCfgHTML(w);
+  document.getElementById('cfg-panel').classList.add('open');
+}
+function closeCfgPanel() { document.getElementById('cfg-panel').classList.remove('open'); activeWid = null; }
+
+function sel(opts, cur) { return opts.map(o => `<option value="${o}" ${cur===o?'selected':''}>${FL[o]||o}</option>`).join(''); }
+
+function buildCfgHTML(w) {
+  const base = `
+    <div><label class="form-label">Widget Title</label><input id="ci-title" class="form-input" value="${w.title||''}"></div>
+    <div><label class="form-label">Description</label><input id="ci-desc" class="form-input" value="${w.desc||''}"></div>
+    <div class="grid grid-cols-2 gap-2">
+      <div><label class="form-label">Width (cols)</label><input id="ci-col" type="number" min="1" max="12" class="form-input" value="${w.colSpan||4}"></div>
+      <div><label class="form-label">Height (rows)</label><input id="ci-row" type="number" min="1" max="6" class="form-input" value="${w.rowSpan||2}"></div>
+    </div>`;
+  if (w.type === 'kpi') return base + `
+    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 pt-2">Data Settings</p>
+    <div><label class="form-label">Metric</label><select id="ci-metric" class="form-input">${sel(METRICS, w.metric)}</select></div>
+    <div><label class="form-label">Aggregation</label><select id="ci-agg" class="form-input"><option value="sum" ${w.aggregation==='sum'?'selected':''}>Sum</option><option value="avg" ${w.aggregation==='avg'?'selected':''}>Average</option><option value="count" ${w.aggregation==='count'?'selected':''}>Count</option></select></div>
+    <div><label class="form-label">Data Format</label><select id="ci-fmt" class="form-input"><option value="currency" ${w.format==='currency'?'selected':''}>Currency</option><option value="number" ${w.format==='number'?'selected':''}>Number</option></select></div>`;
+  if (w.type === 'pie-chart') return base + `
+    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 pt-2">Data</p>
+    <div><label class="form-label">Data Field</label><select id="ci-pie" class="form-input">${sel(['product','quantity','unitPrice','totalAmount','status','createdBy'], w.dataField)}</select></div>
+    <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 cursor-pointer mt-1"><input id="ci-legend" type="checkbox" ${w.showLegend!==false?'checked':''}><span>Show Legend</span></label>`;
+  if (w.type === 'table') return base + `
+    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 pt-2">Columns</p>
+    <div class="space-y-1.5 border border-slate-200 rounded-xl p-3 max-h-44 overflow-y-auto">${TCOLKEYS.map(k=>`<label class="flex items-center gap-2 text-[12px] font-semibold text-slate-600 cursor-pointer"><input type="checkbox" data-col="1" value="${k}" ${(w.columns||[]).includes(k)?'checked':''}><span>${TCOLS[k]}</span></label>`).join('')}</div>
+    <div><label class="form-label">Pagination</label><select id="ci-pg" class="form-input"><option value="5" ${w.pagination===5?'selected':''}>5 rows</option><option value="10" ${w.pagination===10?'selected':''}>10 rows</option><option value="15" ${w.pagination===15?'selected':''}>15 rows</option></select></div>
+    <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 cursor-pointer"><input id="ci-sort" type="checkbox" ${w.sorting?'checked':''}><span>Enable Sorting</span></label>
+    <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 cursor-pointer"><input id="ci-filt" type="checkbox" ${w.applyFilter?'checked':''}><span>Apply Date Filter</span></label>`;
+  return base + `
+    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 pt-2">Axes</p>
+    <div><label class="form-label">X Axis</label><select id="ci-xaxis" class="form-input">${sel(AXES, w.xAxis)}</select></div>
+    <div><label class="form-label">Y Axis</label><select id="ci-yaxis" class="form-input">${sel(AXES, w.yAxis)}</select></div>
+    <div><label class="form-label">Chart Color</label><input id="ci-color" type="color" class="form-input h-10 p-1 cursor-pointer" value="${w.chartColor||'#13ec13'}"></div>
+    <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 cursor-pointer"><input id="ci-lbl" type="checkbox" ${w.showLabel?'checked':''}><span>Show Data Labels</span></label>`;
+}
+
+function applyCfg() {
+  const w = layout.find(x => x.id === activeWid); if (!w) return;
+  w.title   = document.getElementById('ci-title')?.value || w.title;
+  w.desc    = document.getElementById('ci-desc')?.value  || '';
+  w.colSpan = Math.min(12, parseInt(document.getElementById('ci-col')?.value) || 4);
+  w.rowSpan = Math.max(1,  parseInt(document.getElementById('ci-row')?.value) || 2);
+  if (w.type === 'kpi') {
+    w.metric      = document.getElementById('ci-metric')?.value || w.metric;
+    w.aggregation = document.getElementById('ci-agg')?.value    || w.aggregation;
+    w.format      = document.getElementById('ci-fmt')?.value    || w.format;
+  } else if (w.type === 'pie-chart') {
+    w.dataField  = document.getElementById('ci-pie')?.value    || w.dataField;
+    w.showLegend = document.getElementById('ci-legend')?.checked;
+  } else if (w.type === 'table') {
+    const checked = [...document.querySelectorAll('[data-col="1"]:checked')].map(el => el.value);
+    w.columns    = checked.length ? checked : w.columns;
+    w.pagination = parseInt(document.getElementById('ci-pg')?.value) || 10;
+    w.sorting    = document.getElementById('ci-sort')?.checked;
+    w.applyFilter= document.getElementById('ci-filt')?.checked;
+  } else {
+    w.xAxis      = document.getElementById('ci-xaxis')?.value || w.xAxis;
+    w.yAxis      = document.getElementById('ci-yaxis')?.value || w.yAxis;
+    w.chartColor = document.getElementById('ci-color')?.value || w.chartColor;
+    w.showLabel  = document.getElementById('ci-lbl')?.checked;
+  }
+  w._page = 1;
+  const box = document.getElementById('wbox-' + w.id);
+  if (box) {
+    box.style.gridColumn = `span ${w.colSpan}`;
+    box.style.gridRow    = `span ${w.rowSpan}`;
+    box.style.minHeight  = `${w.rowSpan * 90}px`;
+    if (charts[w.id]) { charts[w.id].destroy(); delete charts[w.id]; }
+  }
+  fillWidgetContent(w);
+  closeCfgPanel();
+}
+
+/* ======= ORDERS ======= */
+const O_HEADS = ['Cust. ID','First Name','Last Name','Email','Phone','Address','Order ID','Order Date','Product','Qty','Unit Price','Total','Status','Created By',''];
+
+function renderOrdersTable() {
+  const thead = document.getElementById('orders-thead');
+  const tbody = document.getElementById('orders-tbody');
+  thead.innerHTML = O_HEADS.map(h => `<th class="px-4 py-3 text-left whitespace-nowrap">${h}</th>`).join('');
+  document.getElementById('orders-empty').classList.toggle('hidden', orders.length > 0);
+  document.getElementById('orders-table-wrap').classList.toggle('hidden', orders.length === 0);
+  tbody.innerHTML = orders.map(o => `
+    <tr class="hover:bg-slate-50 transition-colors">
+      <td class="px-4 py-3 text-[11px] font-mono text-slate-400">${o.customerId}</td>
+      <td class="px-4 py-3 font-semibold whitespace-nowrap">${o.firstName}</td>
+      <td class="px-4 py-3 whitespace-nowrap">${o.lastName}</td>
+      <td class="px-4 py-3 text-slate-500 whitespace-nowrap">${o.email}</td>
+      <td class="px-4 py-3 whitespace-nowrap">${o.phone}</td>
+      <td class="px-4 py-3 text-slate-500 max-w-[120px] truncate">${o.street}, ${o.city}</td>
+      <td class="px-4 py-3 text-[11px] font-mono text-slate-400">${o.orderId}</td>
+      <td class="px-4 py-3 whitespace-nowrap text-slate-500">${o.orderDate}</td>
+      <td class="px-4 py-3 whitespace-nowrap font-medium">${o.product}</td>
+      <td class="px-4 py-3 text-center">${o.quantity}</td>
+      <td class="px-4 py-3 whitespace-nowrap">₹${parseFloat(o.unitPrice).toFixed(2)}</td>
+      <td class="px-4 py-3 whitespace-nowrap font-bold text-green-600">₹${parseFloat(o.totalAmount).toFixed(2)}</td>
+      <td class="px-4 py-3 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-[11px] font-bold ${sBadge(o.status)}">${o.status}</span></td>
+      <td class="px-4 py-3 whitespace-nowrap text-slate-500 text-[12px]">${o.createdBy}</td>
+      <td class="px-4 py-3"><button onclick="showCtx(event,'${o.id}')" class="size-7 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700"><span class="material-symbols-outlined text-[18px]">more_vert</span></button></td>
+    </tr>`).join('');
+}
+
+function sBadge(s) {
+  if (s === 'Completed')  return 'badge-done';
+  if (s === 'In progress') return 'badge-progress';
+  return 'badge-pending';
+}
+
+/* ======= ORDER FORM ======= */
+let editId = null;
+
+function openOrderModal(id) {
+  editId = id;
+  document.getElementById('modal-title').textContent = id ? 'Edit Order' : 'Create Order';
+  clearOForm();
+  if (id) { const o = orders.find(x => x.id === id); if (o) fillOForm(o); }
+  document.getElementById('order-modal').style.display = 'flex';
+}
+function closeOrderModal() { document.getElementById('order-modal').style.display = 'none'; }
+
+function fv(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function sv(id, v) { const el = document.getElementById(id); if (el) el.value = v || ''; }
+
+function clearOForm() {
+  ['ff-fname','ff-lname','ff-email','ff-phone','ff-street','ff-city','ff-state','ff-postal','ff-country','ff-product','ff-status','ff-createdby','ff-total'].forEach(id => sv(id,''));
+  sv('ff-qty','1'); sv('ff-uprice','');
+  document.querySelectorAll('.field-err').forEach(e => e.classList.remove('show'));
+}
+
+function fillOForm(o) {
+  sv('ff-fname', o.firstName); sv('ff-lname', o.lastName); sv('ff-email', o.email); sv('ff-phone', o.phone);
+  sv('ff-street', o.street); sv('ff-city', o.city); sv('ff-state', o.state); sv('ff-postal', o.postal);
+  sv('ff-country', o.country); sv('ff-product', o.product); sv('ff-qty', o.quantity); sv('ff-uprice', o.unitPrice);
+  sv('ff-total', o.totalAmount); sv('ff-status', o.status); sv('ff-createdby', o.createdBy);
+}
+
+function onProductChange() {
+  const sel = document.getElementById('ff-product');
+  const opt = sel.options[sel.selectedIndex];
+  const price = opt.dataset.price;
+  if (price) { sv('ff-uprice', price); calcTotal(); }
+}
+
+function calcTotal() {
+  const q = parseFloat(fv('ff-qty')) || 0;
+  const p = parseFloat(fv('ff-uprice')) || 0;
+  sv('ff-total', (q * p).toFixed(2));
+}
+
+function req(fid, eid) {
+  const v = fv(fid);
+  document.getElementById(eid).classList.toggle('show', !v);
+  return !!v;
+}
+
+async function submitOrder(e) {
+  e.preventDefault();
+  const ok = [
+    req('ff-fname','fe-fname'), req('ff-lname','fe-lname'), req('ff-email','fe-email'),
+    req('ff-phone','fe-phone'), req('ff-street','fe-street'), req('ff-city','fe-city'),
+    req('ff-state','fe-state'), req('ff-postal','fe-postal'), req('ff-country','fe-country'),
+    req('ff-product','fe-product'), req('ff-qty','fe-qty'), req('ff-uprice','fe-uprice'),
+    req('ff-status','fe-status'), req('ff-createdby','fe-createdby'),
+  ].every(Boolean);
+  if (!ok) return;
+  const now = new Date();
+  const order = {
+    id: editId || undefined, // Let DB generate ID if new
+    customerId: editId ? (orders.find(o=>o.id===editId)?.customerId||cid()) : cid(),
+    orderId: editId ? (orders.find(o=>o.id===editId)?.orderId||oid()) : oid(),
+    orderDate: editId ? (orders.find(o=>o.id===editId)?.orderDate||now.toLocaleDateString()) : now.toLocaleDateString(),
+    firstName: fv('ff-fname'), lastName: fv('ff-lname'), email: fv('ff-email'), phone: fv('ff-phone'),
+    street: fv('ff-street'), city: fv('ff-city'), state: fv('ff-state'), postal: fv('ff-postal'), country: fv('ff-country'),
+    customerName: fv('ff-fname') + ' ' + fv('ff-lname'),
+    address: fv('ff-street') + ', ' + fv('ff-city'),
+    product: fv('ff-product'), quantity: fv('ff-qty'), unitPrice: fv('ff-uprice'),
+    totalAmount: fv('ff-total'), status: fv('ff-status'), createdBy: fv('ff-createdby'),
+  };
+  
+  try {
+      window.SupabaseClient.saveOrder(order).then(() => fetchOrders());
+      
+      // Update local state immediately for instant feedback
+      orders = JSON.parse(localStorage.getItem('essenceOrders') || '[]');
+      renderOrdersTable();
+      closeOrderModal();
+  } catch (err) {
+      alert('Error saving order: ' + err.message);
+  }
+}
+
+function cid() { return 'C' + String(Date.now()).slice(-6); }
+function oid() { return 'ORD-' + String(Date.now()).slice(-6); }
+
+/* ======= CONTEXT MENU ======= */
+function showCtx(e, id) {
+  e.stopPropagation(); ctxOrderId = id;
+  const m = document.getElementById('ctx-menu');
+  m.classList.remove('hidden');
+  m.style.top  = Math.min(e.clientY, window.innerHeight - 90) + 'px';
+  m.style.left = Math.min(e.clientX, window.innerWidth  - 140) + 'px';
+}
+function hideCtx() { document.getElementById('ctx-menu').classList.add('hidden'); }
+function ctxEdit()   { hideCtx(); openOrderModal(ctxOrderId); }
+function ctxDelete() { hideCtx(); openDelModal(() => { 
+    try {
+        window.SupabaseClient.deleteOrder(ctxOrderId).then(() => fetchOrders());
+        
+        // Update local state immediately
+        orders = JSON.parse(localStorage.getItem('essenceOrders') || '[]');
+        renderOrdersTable();
+    } catch (err) {
+        alert('Error deleting order');
+    }
+}); }
+
+/* ======= DELETE MODAL ======= */
+function openDelModal(cb) {
+  delCb = cb;
+  document.getElementById('del-modal').style.display = 'flex';
+  document.getElementById('del-confirm-btn').onclick = () => { if (delCb) delCb(); closeDelModal(); };
+}
+function closeDelModal() { document.getElementById('del-modal').style.display = 'none'; delCb = null; }
+
+/* end */
+
+</script>
+
+</body>
+</html>

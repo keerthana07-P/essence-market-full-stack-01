@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>EssenceMarket - Shipping Address</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100dvh;
+        }
+
+        /* ── Checkout Step Bar ── */
+        .step-connector {
+            flex: 1;
+            height: 2px;
+            background: #e2e8f0;
+            margin: 0 4px;
+            transition: background 0.4s;
+        }
+
+        .dark .step-connector {
+            background: #334155;
+        }
+
+        .step-connector.done {
+            background: #13ec13;
+        }
+
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            flex-shrink: 0;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #94a3b8;
+            transition: all 0.3s;
+        }
+
+        .dark .step-circle {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .step-circle.active {
+            background: #13ec13;
+            border-color: #13ec13;
+            color: #0f172a;
+            box-shadow: 0 0 0 4px rgba(19, 236, 19, 0.2);
+        }
+
+        .step-circle.completed {
+            background: #13ec13;
+            border-color: #13ec13;
+            color: #0f172a;
+        }
+
+        /* ── Form Inputs ── */
+        .form-input {
+            width: 100%;
+            height: 52px;
+            padding: 0 1rem;
+            border-radius: 0.75rem;
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            outline: none;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.9rem;
+            color: #0f172a;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .dark .form-input {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .form-input:focus {
+            border-color: #13ec13;
+            box-shadow: 0 0 0 3px rgba(19, 236, 19, 0.15);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border-radius: 0.75rem;
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            outline: none;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.9rem;
+            color: #0f172a;
+            resize: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .dark .form-textarea {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .form-textarea:focus {
+            border-color: #13ec13;
+            box-shadow: 0 0 0 3px rgba(19, 236, 19, 0.15);
+        }
+
+        /* ── Payment Options ── */
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .dark .payment-option {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .payment-option:hover {
+            border-color: rgba(19, 236, 19, 0.5);
+        }
+
+        .payment-option.selected {
+            border-color: #13ec13;
+            background: rgba(19, 236, 19, 0.05);
+        }
+
+        .dark .payment-option.selected {
+            background: rgba(19, 236, 19, 0.08);
+        }
+
+        .payment-radio {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .payment-option.selected .payment-radio {
+            border-color: #13ec13;
+            background: #13ec13;
+        }
+
+        .payment-radio-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s;
+        }
+
+        .payment-option.selected .payment-radio-dot {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ── Summary Card ── */
+        .summary-sticky {
+            position: sticky;
+            top: 80px;
+        }
+
+        @media (max-width: 1023px) {
+            .summary-sticky {
+                position: static;
+            }
+        }
+
+        /* ── Buttons ── */
+        .btn-confirm {
+            transition: box-shadow 0.2s ease, transform 0.15s ease;
+        }
+
+        .btn-confirm:hover {
+            box-shadow: 0 8px 28px rgba(19, 236, 19, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-confirm:active {
+            transform: scale(0.98) translateY(0);
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-up {
+            animation: fadeUp 0.45s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+            opacity: 0;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+            opacity: 0;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+
+    <!-- ════════ HEADER ════════ -->
+    <header
+        class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-primary/10 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-4">
+            <a href="cart.html"
+                class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-primary/10 transition-colors text-slate-700 dark:text-slate-300">
+                <span class="material-symbols-outlined">arrow_back_ios_new</span>
+            </a>
+            <div class="flex-1">
+                <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Shipping Address
+                </h1>
+                <p class="text-xs text-slate-400 dark:text-slate-500 hidden sm:block">Step 1 of 3 — Enter your delivery
+                    details</p>
+            </div>
+            <a href="index.html"
+                class="hidden sm:flex items-center gap-1.5 text-sm font-bold text-primary hover:underline">
+                <span class="material-symbols-outlined text-[18px]">home</span> Home
+            </a>
+        </div>
+    </header>
+
+    <!-- ════════ STEP INDICATOR ════════ -->
+    <div class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-center max-w-sm mx-auto">
+                <!-- Step 1: Address (Active) -->
+                <div class="flex flex-col items-center">
+                    <div class="step-circle active">
+                        <span class="material-symbols-outlined text-[16px]">location_on</span>
+                    </div>
+                    <span class="mt-1.5 text-[11px] font-bold text-primary">Address</span>
+                </div>
+                <!-- Connector -->
+                <div class="step-connector"></div>
+                <!-- Step 2: Confirm -->
+                <div class="flex flex-col items-center">
+                    <div class="step-circle">
+                        <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                    </div>
+                    <span class="mt-1.5 text-[11px] font-medium text-slate-400">Confirm</span>
+                </div>
+                <!-- Connector -->
+                <div class="step-connector"></div>
+                <!-- Step 3: Done -->
+                <div class="flex flex-col items-center">
+                    <div class="step-circle">
+                        <span class="material-symbols-outlined text-[16px]">celebration</span>
+                    </div>
+                    <span class="mt-1.5 text-[11px] font-medium text-slate-400">Done</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ MAIN ════════ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 pb-16">
+        <div class="lg:grid lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px] gap-10 lg:gap-12 items-start">
+
+            <!-- ══ LEFT: Address Form ══ -->
+            <div class="space-y-6 fade-up">
+
+                <!-- Delivery Address Form -->
+                <div
+                    class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm p-6 md:p-8">
+                    <h2
+                        class="text-base font-extrabold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-[20px]">home</span>
+                        Delivery Address
+                    </h2>
+
+                    <form id="shipping-form" class="space-y-5">
+                        <!-- Name & Phone -->
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-sm font-bold text-slate-700 dark:text-slate-300 ml-0.5">Full Name
+                                    *</label>
+                                <div class="relative">
+                                    <input id="field-name" class="form-input pl-11" placeholder="e.g. Priya Sharma"
+                                        type="text" required />
+                                    <span
+                                        class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">person</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-sm font-bold text-slate-700 dark:text-slate-300 ml-0.5">Phone Number
+                                    *</label>
+                                <div class="relative">
+                                    <input id="field-phone" class="form-input pl-11" placeholder="+91 98765 43210"
+                                        type="tel" required />
+                                    <span
+                                        class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">call</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Street Address -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-sm font-bold text-slate-700 dark:text-slate-300 ml-0.5">Street Address
+                                *</label>
+                            <div class="relative">
+                                <input id="field-street" class="form-input pl-11"
+                                    placeholder="House / Flat no., Building, Street" type="text" required />
+                                <span
+                                    class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">location_on</span>
+                            </div>
+                        </div>
+
+                        <!-- City & Pincode -->
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-sm font-bold text-slate-700 dark:text-slate-300 ml-0.5">City
+                                    *</label>
+                                <div class="relative">
+                                    <input id="field-city" class="form-input pl-11" placeholder="e.g. Bengaluru"
+                                        type="text" required />
+                                    <span
+                                        class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">apartment</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-sm font-bold text-slate-700 dark:text-slate-300 ml-0.5">Pincode
+                                    *</label>
+                                <div class="relative">
+                                    <input id="field-pin" class="form-input pl-11" placeholder="e.g. 560001" type="text"
+                                        maxlength="6" required />
+                                    <span
+                                        class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">pin_drop</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Instructions -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-sm font-bold text-slate-700 dark:text-slate-300 ml-0.5">Delivery
+                                Instructions <span class="font-normal text-slate-400">(optional)</span></label>
+                            <textarea id="field-instructions" class="form-textarea" rows="3"
+                                placeholder="e.g. Leave at door, Ring bell twice, Call before delivery…"></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Payment Method Section -->
+                <div
+                    class="fade-up delay-1 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm p-6 md:p-8">
+                    <h2
+                        class="text-base font-extrabold text-slate-800 dark:text-slate-100 mb-5 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-[20px]">payments</span>
+                        Payment Method
+                    </h2>
+
+                    <div class="space-y-3" id="payment-options">
+                        <!-- Cash on Delivery -->
+                        <label class="payment-option selected cursor-pointer" id="label-cod">
+                            <input class="hidden" id="pay-cod" name="payment-method" type="radio" value="cod" checked />
+                            <div class="payment-radio">
+                                <div class="payment-radio-dot"></div>
+                            </div>
+                            <div
+                                class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-amber-500 text-[20px]">local_atm</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Cash on Delivery</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Pay when your order arrives</p>
+                            </div>
+                            <span
+                                class="text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1 rounded-full shrink-0">COD</span>
+                        </label>
+
+                        <!-- UPI / Online Payment -->
+                        <label class="payment-option cursor-pointer" id="label-upi">
+                            <input class="hidden" id="pay-upi" name="payment-method" type="radio" value="upi" />
+                            <div class="payment-radio">
+                                <div class="payment-radio-dot"></div>
+                            </div>
+                            <div
+                                class="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-violet-500 text-[20px]">qr_code</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-slate-800 dark:text-slate-100">UPI / Online Payment</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Pay via UPI, Net Banking, or Cards</p>
+                            </div>
+                            <span
+                                class="text-xs font-bold text-violet-600 bg-violet-50 dark:bg-violet-900/20 px-2.5 py-1 rounded-full shrink-0">ONLINE</span>
+                        </label>
+                    </div>
+
+                    <!-- UPI notice (shown when UPI selected) -->
+                    <div id="upi-notice"
+                        class="hidden mt-4 flex items-start gap-3 p-3.5 bg-violet-50 dark:bg-violet-900/20 rounded-2xl">
+                        <span class="material-symbols-outlined text-violet-500 shrink-0 text-[18px] mt-0.5">info</span>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            You'll be redirected to a secure payment gateway after confirming your order.
+                        </p>
+                    </div>
+
+                    <!-- COD notice (shown when COD selected) -->
+                    <div id="cod-notice"
+                        class="mt-4 flex items-start gap-3 p-3.5 bg-amber-50 dark:bg-amber-900/20 rounded-2xl">
+                        <span class="material-symbols-outlined text-amber-500 shrink-0 text-[18px] mt-0.5">info</span>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Keep exact change ready. Our delivery partner will collect payment at your door.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons (visible on desktop below form) -->
+                <div class="hidden lg:flex items-center gap-4 fade-up delay-2">
+                    <a href="cart.html"
+                        class="flex-1 h-14 rounded-2xl border-2 border-slate-200 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-2 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                        Cancel
+                    </a>
+                    <button id="confirm-btn"
+                        class="btn-confirm flex-[2] h-14 bg-primary text-slate-900 rounded-2xl font-extrabold text-base flex items-center justify-center gap-2.5 shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined">check_circle</span>
+                        <span>Confirm Order</span>
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ══ RIGHT: Order Summary ══ -->
+            <div class="summary-sticky mt-8 lg:mt-0 fade-up delay-2">
+                <div
+                    class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <!-- Header -->
+                    <div
+                        class="bg-gradient-to-r from-emerald-50 to-white dark:from-slate-900 dark:to-slate-800 px-6 py-4 border-b border-primary/10">
+                        <h2 class="text-base font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[20px]">shopping_bag</span>
+                            Order Summary
+                        </h2>
+                    </div>
+
+                    <!-- Order Items List -->
+                    <div id="summary-items" class="px-6 py-4 space-y-3 max-h-72 overflow-y-auto">
+                        <!-- populated by JS -->
+                    </div>
+
+                    <!-- Totals -->
+                    <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Subtotal</span>
+                            <span id="summary-subtotal" class="font-bold">₹0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Shipping</span>
+                            <span class="font-bold text-primary">FREE</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Tax (8%)</span>
+                            <span id="summary-tax" class="font-bold">₹0</span>
+                        </div>
+                        <div
+                            class="border-t border-slate-100 dark:border-slate-700 pt-4 flex justify-between items-center">
+                            <span class="text-lg font-extrabold text-slate-900 dark:text-slate-100">Total</span>
+                            <span id="summary-total" class="text-2xl font-black text-primary">₹0</span>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Info -->
+                    <div class="px-6 pb-5">
+                        <div class="flex items-center gap-3 p-3.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl">
+                            <span
+                                class="material-symbols-outlined text-primary text-[20px] shrink-0">local_shipping</span>
+                            <div>
+                                <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Free standard delivery
+                                </p>
+                                <p class="text-xs text-slate-400 mt-0.5">Estimated: 3–5 business days</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Safe Checkout Badge -->
+                <div class="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                    <span class="material-symbols-outlined text-[16px] text-primary">lock</span>
+                    Secure &amp; encrypted checkout
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ Mobile Action Buttons (shown only on mobile/tablet) ══ -->
+        <div class="lg:hidden mt-8 flex flex-col sm:flex-row items-center gap-3">
+            <a href="cart.html"
+                class="w-full sm:flex-1 h-14 rounded-2xl border-2 border-slate-200 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-2 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                Cancel
+            </a>
+            <button id="confirm-btn-mobile"
+                class="btn-confirm w-full sm:flex-[2] h-14 bg-primary text-slate-900 rounded-2xl font-extrabold text-base flex items-center justify-center gap-2.5 shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span>Confirm Order</span>
+            </button>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+    <script src="supabase_client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const { subtotal, tax, total } = getCartTotals();
+            const cart = getCart();
+
+            // Populate totals in summary
+            document.getElementById('summary-subtotal').textContent = formatINR(subtotal);
+            document.getElementById('summary-tax').textContent = formatINR(tax);
+            document.getElementById('summary-total').textContent = formatINR(total);
+
+            // Populate items in summary
+            const itemsList = document.getElementById('summary-items');
+            if (cart.length > 0) {
+                cart.forEach(item => {
+                    itemsList.insertAdjacentHTML('beforeend', `
+                    <div class="flex items-center gap-3">
+                        <div class="w-14 h-14 rounded-xl bg-slate-100 dark:bg-slate-700 overflow-hidden shrink-0 border border-slate-100 dark:border-slate-600">
+                            <img class="w-full h-full object-cover" src="${item.image}" alt="${item.title}" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100 line-clamp-1">${item.title}</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Qty: ${item.quantity}</p>
+                        </div>
+                        <p class="text-sm font-bold text-primary shrink-0">${formatINR(item.price * item.quantity)}</p>
+                    </div>`);
+                });
+            } else {
+                itemsList.innerHTML = '<p class="text-slate-400 text-sm text-center py-4">No items in cart</p>';
+            }
+
+            // Payment Method Toggle
+            const paymentLabels = document.querySelectorAll('.payment-option');
+            const codNotice = document.getElementById('cod-notice');
+            const upiNotice = document.getElementById('upi-notice');
+
+            document.querySelectorAll('input[name="payment-method"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    paymentLabels.forEach(lbl => lbl.classList.remove('selected'));
+                    radio.closest('label').classList.add('selected');
+
+                    if (radio.value === 'upi') {
+                        codNotice.classList.add('hidden');
+                        upiNotice.classList.remove('hidden');
+                    } else {
+                        upiNotice.classList.add('hidden');
+                        codNotice.classList.remove('hidden');
+                    }
+                });
+            });
+
+            // Confirm Order Buttons
+            const handleConfirm = async () => {
+                const name = document.getElementById('field-name').value.trim();
+                const phone = document.getElementById('field-phone').value.trim();
+                const street = document.getElementById('field-street').value.trim();
+                const city = document.getElementById('field-city').value.trim();
+                const pin = document.getElementById('field-pin').value.trim();
+                const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+
+                if (!name || !phone || !street || !city || !pin) {
+                    alert('Please fill in all required fields before confirming.');
+                    return;
+                }
+
+                const { total } = getCartTotals();
+                const cart = getCart();
+                
+                // Create Order Object for Supabase
+                const orderData = {
+                    orderId: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                    customerName: name,
+                    email: 'customer@example.com', // In a real app, get from auth
+                    phone: phone,
+                    address: `${street}, ${city} - ${pin}`,
+                    totalAmount: total,
+                    status: 'Pending',
+                    product: cart.map(item => `${item.title} (x${item.quantity})`).join(', '),
+                    quantity: cart.reduce((acc, item) => acc + item.quantity, 0),
+                    unitPrice: cart[0]?.price || 0,
+                    createdBy: 'Customer'
+                };
+
+                try {
+                    const btn = document.getElementById('confirm-btn');
+                    const btnMob = document.getElementById('confirm-btn-mobile');
+                    if (btn) btn.disabled = true;
+                    if (btnMob) btnMob.disabled = true;
+                    if (btn) btn.innerText = 'Processing...';
+
+                    await window.SupabaseClient.saveOrder(orderData);
+                    
+                    // Clear cart after success
+                    localStorage.removeItem('cart');
+                    window.location.href = `confirmation.html?orderId=${orderData.orderId}`;
+                } catch (err) {
+                    alert('Failed to place order. Please try again.');
+                    console.error(err);
+                    if (btn) btn.disabled = false;
+                    if (btnMob) btnMob.disabled = false;
+                    if (btn) btn.innerText = 'Confirm Order';
+                }
+            };
+
+            document.getElementById('confirm-btn').addEventListener('click', handleConfirm);
+            const mobileBtn = document.getElementById('confirm-btn-mobile');
+            if (mobileBtn) mobileBtn.addEventListener('click', handleConfirm);
+        });
+    </script>
+</body>
+
+</html>
